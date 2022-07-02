@@ -1,5 +1,5 @@
 
-function [PSD_per_window, frequency_Hz, y_mod] = LTAS(y_rv, Fs, detrend_flag)
+function [PSD_per_window_out, frequency_Hz, y_mod] = LTAS(y_rv, Fs, detrend_flag)
 % This script calculates and plots statistics on power spectral density (PSD)
 % for a specified file. It returns an array of PSD per window
 % Inputs
@@ -7,14 +7,13 @@ function [PSD_per_window, frequency_Hz, y_mod] = LTAS(y_rv, Fs, detrend_flag)
 %   Fs:            sample rate [samples/second]
 %
 % Outputs
-%   PSD_per_window: array of dim Nxnfft containing abs(PSD) per window
+%   PSD_per_window_out: array of dim #good-windowsx#freqs containing abs(PSD) per window
 %                   assume 50% overlap on windows
 %                   frequency resolution is 1 Hz
-%   frequency_Hz:   frequency array of dim 1x(1+nfft/2)
+%   frequency_Hz:   frequency array of dim 1x#freqs
 %   y_mod:          input time series, modified by 50%-overlapping hann-windowing
 %                   as well as detrending per window
 %
-% Note:             To avoid running out of memory, we truncate PSD at 100 kHz
 
 
 % Derived values
@@ -30,38 +29,61 @@ y_mod = y_rv;
 
 % PSD
 % Init before looping
-window_num = 1;
-start_sample = 1;
-end_sample = nfft; % For 1 Hz frequency resolution
-PSD_per_window = zeros(num_windows, num_freqs);
 hann_window = (hann(nfft)).';
+% Variables for input time series
+start_sample_in = 1;
+end_sample_in = nfft; % For 1 Hz frequency resolution
+window_num_in = 1;
+% Variables for output time series
+start_sample_out = start_sample_in;
+end_sample_out = end_sample_in;
+window_num_out = window_num_in;
+PSD_per_window = zeros(num_windows, num_freqs);
 % Loop over windows
-while (end_sample < N)
-    % Detrend per window?
-    y_windowed = y_rv(start_sample:end_sample);
-    if detrend_flag
-        y_detrended = detrend(y_windowed);
+while (end_sample_in < N)
+    % Segment time series
+    y_segment = y_rv(start_sample_in:end_sample_in);
+    % QC of this segment
+    LTAS_QC_ind = LTAS_QC(y_segment);
+    if LTAS_QC_ind
+        % This segment is OK, so proceed
+        % Detrend per window?   
+        if detrend_flag
+            y_detrended = detrend(y_segment);
+        else
+            y_detrended = y_segment;
+        end
+        % PSD for this window
+        [p_welch,f_welch] = pwelch(y_detrended,hann(nfft),[],nfft,Fs,'psd');
+        % Stuff PSD for this window into an array, first making sure it is a
+        % row-vector
+        if isrow(p_welch)
+            PSD_per_window(window_num_out,:) = abs(p_welch(1:num_freqs));
+        else
+            p_welch_t = p_welch.';
+            PSD_per_window(window_num_out,:) = abs(p_welch_t(1:num_freqs));
+        end
+        % Update y_mod (hann-windowed segment)
+        y_mod(start_sample_out:end_sample_out) = hann_window.*y_detrended;
+        % Prepare for next (good) segment
+        start_sample_out = start_sample_out + floor(nfft/2); 
+        end_sample_out = start_sample_out + nfft - 1;
+        window_num_out = window_num_out + 1;
     else
-        y_detrended = y_windowed;
-    end
-    % PSD for this window
-    [p_welch,f_welch] = pwelch(y_detrended,hann(nfft),[],nfft,Fs,'psd');
-    % Stuff into array
-    if isrow(p_welch)
-        PSD_per_window(window_num,:) = abs(p_welch(1:num_freqs));
-    else
-        p_welch_t = p_welch.';
-        PSD_per_window(window_num,:) = abs(p_welch_t(1:num_freqs));
-    end
-    % Update y_mod (hann-windowed segment)
-    y_mod(start_sample:end_sample) = hann_window.*y_detrended;
-    % Advance to next window
-    window_num = window_num + 1;
-    start_sample = start_sample + floor(nfft/2); 
-    end_sample = start_sample + nfft - 1;
+        % This segment failed QC check, so issue warning and skip the
+        % segment
+        fprintf("%s,%d,%s\n", "Segment ",window_num_in, "failed QC: Discontinuity");
+        figure; plot(y_segment);
+    end    
+    % Regardless of QC for this segment advance to next (input) segment
+    start_sample_in = start_sample_in + floor(nfft/2); 
+    end_sample_in = start_sample_in + nfft - 1;
+    window_num_in = window_num_in + 1;
 end
 
 % Pack return vars
+fprintf("%s = %d\n", "Number of good windows",window_num_out-1);
+PSD_per_window_out = PSD_per_window(1:window_num_out-1, :);
 frequency_Hz = f_welch(1:num_freqs);
 
 

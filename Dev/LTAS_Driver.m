@@ -1,14 +1,13 @@
 % Get stats on PSD per file e.g. median, 25th, 75th percentile
 % as per IEC specification
 
-% LTAS_Driver > LTAS_gen_PSD_array_per_wavfile  > LTAS
+% LTAS_Driver > LTAS_gen_PSD_array_per_wavfile  > LTAS > LTAS_QC
 %                                               > LTAS_gen_PSD_stats > LTAS_gen_decidecadal_spectrum >  LTAS_PSD_to_spectrum
 
 % To do:
 % Loop through all wav files
 % Need to adjust for comparison to variance (in time domain)? See IEC spec.
-% Need to skip bad windows?
-% Out of memory if time series too long
+% Out of memory if time series too long?
 clear all;
 close all;
 
