@@ -50,8 +50,8 @@ fprintf("Power (mean) over PSD = %s\n",num2str(median(diff(frequency_Hz))*sum(me
 % Apply calibration factor in order to convert to uPa
 % From audio info: 
 % Comment: '3.000000 V pk, -171 dBV re 1uPa
-cal_factor_dB = 171 + 10*log10(3);
-cal_factor = 10^(cal_factor_dB/10);
+cal_factor_dB = 171;
+cal_factor = 3*10^(cal_factor_dB/10);
 PSD_per_window = cal_factor*PSD_per_window;
 
 % Save
