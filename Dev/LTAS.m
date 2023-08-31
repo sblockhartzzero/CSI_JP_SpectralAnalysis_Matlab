@@ -1,5 +1,5 @@
 
-function [PSD_per_window_out, frequency_Hz, y_mod] = LTAS(y_rv, Fs, detrend_flag)
+function [PSD_per_window_out, frequency_Hz, y_mod] = LTAS(y_rv, Fs, nfft, detrend_flag)
 % This script calculates and plots statistics on power spectral density (PSD)
 % for a specified file. It returns an array of PSD per window
 % Inputs
@@ -19,7 +19,7 @@ function [PSD_per_window_out, frequency_Hz, y_mod] = LTAS(y_rv, Fs, detrend_flag
 % Derived values
 N = length(y_rv);
 %nfft = 2^19;
-nfft = Fs;
+%nfft = Fs;
 num_windows = floor( (N/(nfft/2)) );
 %num_freqs = min(100001,floor(1 + nfft/2));
 num_freqs = floor(1 + nfft/2);
@@ -73,7 +73,7 @@ while (end_sample_in < N)
         % This segment failed QC check, so issue warning and skip the
         % segment
         fprintf("%s,%d,%s\n", "Segment ",window_num_in, "failed QC: Discontinuity");
-        figure; plot(y_segment);
+        %figure; plot(y_segment);
     end    
     % Regardless of QC for this segment advance to next (input) segment
     start_sample_in = start_sample_in + floor(nfft/2); 

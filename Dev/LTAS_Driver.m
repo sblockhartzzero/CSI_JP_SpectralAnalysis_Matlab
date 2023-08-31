@@ -11,22 +11,30 @@
 clear all;
 close all;
 
+
+%% User input
 % Read wav file
-external_drive = false;
-if ~external_drive
-    filename_sans_ext = 'SCW1984_20210421_132000';
-    foldername = '../../Data/Test/';
-else
-    filename_sans_ext = 'SCW1984_20210423_134500';
-    foldername = 'D:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_23\23April21\23April21\';
-end
+filename_sans_ext = 'LJ01D_1499423340';
+foldername = 'C:\Users\SteveLockhart\Documents\Projects\moran\rain\ooi\binned_hydrophone_data_TEST\';
 
 % Audio info
 wavfile_fullpath = strcat(foldername, filename_sans_ext, '.wav');
 info = audioinfo(wavfile_fullpath)
 
+% Specify window size for fft
+nfft = 2^18;
+
+% Specify calibration info
+% From audio info: 
+% Comment: '3.000000 V pk, -171 dBV re 1uPa
+calibration_struct.dBV_re_1uPa = -171;
+calibration_struct.V_pk = 3.0;
+
+
+%% Call
 % Call LTAS_gen_PSD_per_wavfile(foldername, filename_sans_ext) to generate (and save)
 % an array of PSDs (per window) with a frequency resolution of 1 Hz. It
 % also generates plots of PSD stats (median, 25%, 75%) as well as plots of decidecadal
 % spectral stats
-LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext)
+%LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext, nfft, calibration_struct)
+LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext, nfft, calibration_struct)
