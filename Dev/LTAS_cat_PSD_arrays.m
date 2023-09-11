@@ -1,6 +1,6 @@
 %% User input
-% Specify folder for mat files to be concatenated togerher
-PSD_matfile_folder = 'C:\Users\SteveLockhart\github\CSI_JP_SpectralAnalysis_Matlab\Output\Test\';
+% Specify folder for mat files to be concatenated together
+PSD_matfile_folder = 'C:\Users\SteveLockhart\github\CSI_JP_SpectralAnalysis_Matlab\PSD\Test2_LJ01D\';
 
 
 %% Processing
@@ -13,12 +13,12 @@ num_files = length(dir_list);
 cwd = pwd;
 cd(PSD_matfile_folder);
 tot_num_rows = 0;
-PSD_per_window_all = [];
+PSD_per_window_cal_all = [];
 for file_num = 1:num_files
     x(file_num) = load(dir_list(file_num).name);
-    [num_rows,~] = size(x(file_num).PSD_per_window);
+    [num_rows,~] = size(x(file_num).PSD_per_window_cal);
     tot_num_rows = tot_num_rows + num_rows;
-    PSD_per_window_all = cat(1,PSD_per_window_all,x(file_num).PSD_per_window);
+    PSD_per_window_cal_all = cat(1,PSD_per_window_cal_all,x(file_num).PSD_per_window_cal);
 end
 
 % Verify tot_num_rows
@@ -26,7 +26,8 @@ tot_num_rows
 
 % Calc stats on concatenated PSD
 cd(cwd);
-LTAS_gen_PSD_stats(PSD_per_window_all,frequency_Hz)
+frequency_Hz = x(file_num).frequency_Hz;    % Assume all are same
+LTAS_gen_PSD_stats(PSD_per_window_cal_all,frequency_Hz)
 
 
 

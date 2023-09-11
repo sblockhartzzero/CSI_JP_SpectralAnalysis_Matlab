@@ -44,7 +44,9 @@ caxis([-120 -80]);
 
 % Call LTAS
 detrend_flag = false;
+% Note PSD_per_window is #windows x #freqs
 [PSD_per_window, frequency_Hz, y_mod] = LTAS(y_sub_t, Fs, nfft, detrend_flag);
+[num_windows, num_freqs] = size(PSD_per_window);
 
 % Look at var before cal factor applied
 med_PSD = median(PSD_per_window);
@@ -53,17 +55,30 @@ fprintf("Power (med) over PSD = %s\n",num2str(median(diff(frequency_Hz))*sum(med
 fprintf("Power (mean) over PSD = %s\n",num2str(median(diff(frequency_Hz))*sum(mean_PSD)));
 
 % Apply calibration factor in order to convert to uPa
-cal_factor_dB = -calibration_struct.dBV_re_1uPa;
-V_pk = calibration_struct.V_pk;
-cal_factor = V_pk*10^(cal_factor_dB/10);
-PSD_per_window = cal_factor*PSD_per_window;
+if calibration_struct.freq_dependent
+    % Interpolate f_cal to this freq array
+    cal_factor = 10.^(calibration_struct.cal_adj_dB/10);
+    % Vq = interp1(X,V,Xq,METHOD)
+    cal_factor_i = interp1(calibration_struct.f_cal, cal_factor, frequency_Hz');
+    PSD_per_window_cal = zeros(num_windows,num_freqs);
+    for window_num = 1:num_windows
+        PSD_per_window_cal(window_num,:) = PSD_per_window(window_num,:).*cal_factor_i;
+    end
+else
+    % Constant factor
+    cal_factor_dB = -calibration_struct.dBV_re_1uPa;
+    V_pk = calibration_struct.V_pk;
+    cal_factor = V_pk*10^(cal_factor_dB/10);
+    PSD_per_window_cal = cal_factor*PSD_per_window;
+end
+
 
 % Save
 save_filename = strcat(filename_sans_ext, '_PSD.mat');
-save(save_filename,'PSD_per_window','frequency_Hz');
+save(save_filename,'PSD_per_window_cal','frequency_Hz');
 
 % Generate and plot stats for this PSD
-LTAS_gen_PSD_stats(PSD_per_window,frequency_Hz)
+LTAS_gen_PSD_stats(PSD_per_window_cal,frequency_Hz)
 
 % Var
 fprintf("Var of subset=%s\n", num2str(var(y_sub_t)));
