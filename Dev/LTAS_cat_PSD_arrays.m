@@ -1,6 +1,15 @@
 %% User input
+% Specify hydrophone e.g. so we can lookup cal per hydrophone
+% For OOI, specify whether shelf or offshore (for ooi)
+% 'LJ01D' is shelf broad-band hydrophone
+% 'LJ01C' is offshore broad-band hydrophone
+hydrophone = 'LJ01C';
+
+% Specify wind/rain bin
+bin_wind_rain_str = 'wind10m_3mps_rainrte_1mmphr';
+
 % Specify folder for mat files to be concatenated together
-PSD_matfile_folder = 'C:\Users\SteveLockhart\github\CSI_JP_SpectralAnalysis_Matlab\PSD\Test2_LJ01D\';
+PSD_matfile_folder = strcat('../PSD/', bin_wind_rain_str,'/', hydrophone,'/');
 
 
 %% Processing

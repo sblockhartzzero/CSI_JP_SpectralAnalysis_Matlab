@@ -16,23 +16,35 @@
 clear all;
 %close all;
 
+% To do:
+% -loop through files for a specified wind/rain bin for a specified
+%  location i.e. all 'LJ01D' at 'wind10m_3mps_rainrte_1mmphr'; set 
+%  cal_info_file accordingly.
+
 
 %% User input
-% Read wav file
-wav_foldername = 'C:\Users\SteveLockhart\Documents\Projects\moran\rain\ooi\binned_hydrophone_data_TEST\';
-wav_filename_sans_ext = 'LJ01D_1470623340';
+% Specify project e.g. 'CSI' or 'OOI'
+project = 'OOI';
 
-% Audio info
-wavfile_fullpath = strcat(wav_foldername, wav_filename_sans_ext, '.wav');
-info = audioinfo(wavfile_fullpath)
+% Specify hydrophone e.g. so we can lookup cal per hydrophone
+% For OOI, specify whether shelf or offshore (for ooi)
+% 'LJ01D' is shelf broad-band hydrophone
+% 'LJ01C' is offshore broad-band hydrophone
+hydrophone = 'LJ01C';
+
+% Specify wind/rain bin
+bin_wind_rain_str = 'wind10m_3mps_rainrte_1mmphr';
+
+% Spcify wav folder
+wav_foldername = strcat('C:\Users\SteveLockhart\Documents\Projects\moran\rain\ooi\binned_hydrophone_data\',bin_wind_rain_str,'\');
+
+% PSD output folder
+PSD_output_folder = strcat('../PSD/', bin_wind_rain_str,'/', hydrophone,'/');
 
 % Specify window size for fft
 nfft = 2^18;
 
-% Specify project e.g. 'CSI' or 'OOI'
-project = 'OOI';
-
-% Specify calibration info
+% Specify project-specific info: calibration
 switch project
     case 'CSI'
         % For CSI:
@@ -43,7 +55,8 @@ switch project
         calibration_struct.V_pk = 1.0;
     case 'OOI'
         % Get frequency dependent cal info from a mat file
-        cal_info_file = strcat(wav_foldername,'LJ01D_cal_info.mat');
+        cal_info_folder = 'C:\Users\SteveLockhart\Documents\Projects\moran\rain\ooi\cal_info\';
+        cal_info_file = strcat(cal_info_folder, hydrophone,'_cal_info.mat');
         cal_info = load(cal_info_file);
         % Stuff
         calibration_struct.freq_dependent = true;
@@ -57,9 +70,34 @@ end
 
 
 %% Call
-% Call LTAS_gen_PSD_per_wavfile(wav_foldername, wav_filename_sans_ext) to generate (and save)
-% an array of PSDs (per window) with a frequency resolution of 1 Hz. It
-% also generates plots of PSD stats (median, 25%, 75%) as well as plots of decidecadal
-% spectral stats
-%LTAS_gen_PSD_array_per_wavfile(wav_foldername, wav_filename_sans_ext, nfft, calibration_struct)
-LTAS_gen_PSD_array_per_wavfile(wav_foldername, wav_filename_sans_ext, nfft, calibration_struct)
+% Get list of wav files for this wind/rain bin and location
+search_string = strcat(wav_foldername, hydrophone, '*.wav');
+dir_list = dir(search_string);
+num_files = length(dir_list);
+
+% Loop on wav files
+for file_num = 1:num_files
+    % Prep for call
+    wav_filename = dir_list(file_num).name;
+    wav_filename_sans_ext = wav_filename(1:end-4);
+    wavfile_fullpath = strcat(wav_foldername, wav_filename);
+    info = audioinfo(wavfile_fullpath)
+
+    % Call LTAS_gen_PSD_per_wavfile(wav_foldername, wav_filename_sans_ext) to generate (and save)
+    % an array of PSDs (per window) with a frequency resolution of 1 Hz. It
+    % also generates plots of PSD stats (median, 25%, 75%) as well as plots of decidecadal
+    % spectral stats
+    %LTAS_gen_PSD_array_per_wavfile(wav_foldername, wav_filename_sans_ext, nfft, calibration_struct)
+    [PSD_per_window_cal,frequency_Hz] = LTAS_gen_PSD_array_per_wavfile(wav_foldername, wav_filename_sans_ext, nfft, calibration_struct);
+    
+    % Save
+    save_filename = strcat(PSD_output_folder, wav_filename_sans_ext, '_PSD.mat');
+    save(save_filename,'PSD_per_window_cal','frequency_Hz');
+    
+    % Generate and plot stats for this PSD
+    LTAS_gen_PSD_stats(PSD_per_window_cal,frequency_Hz)
+end
+
+
+
+

@@ -1,4 +1,4 @@
-function LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext, nfft, calibration_struct)
+function [PSD_per_window_cal,frequency_Hz] = LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext, nfft, calibration_struct)
 % For the specified wav file, generate stats on PSD e.g. median, 25th, 75th percentile
 % curves as per IEC specification and save to a mat file. 
 
@@ -72,14 +72,7 @@ else
     PSD_per_window_cal = cal_factor*PSD_per_window;
 end
 
-
-% Save
-save_filename = strcat(filename_sans_ext, '_PSD.mat');
-save(save_filename,'PSD_per_window_cal','frequency_Hz');
-
-% Generate and plot stats for this PSD
-LTAS_gen_PSD_stats(PSD_per_window_cal,frequency_Hz)
-
 % Var
 fprintf("Var of subset=%s\n", num2str(var(y_sub_t)));
 fprintf("Var of modified subset=%s\n", num2str(var(y_mod)));
+
