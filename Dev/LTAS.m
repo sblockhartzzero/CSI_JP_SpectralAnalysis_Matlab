@@ -1,5 +1,5 @@
 
-function [PSD_per_window_out, frequency_Hz, y_mod] = LTAS(y_rv, Fs, nfft, detrend_flag)
+function [PSD_per_window_out, frequency_Hz, y_mod, skewness_per_window] = LTAS(y_rv, Fs, nfft, detrend_flag)
 % This script calculates and plots statistics on power spectral density (PSD)
 % for a specified file. It returns an array of PSD per window
 % Inputs
@@ -39,13 +39,16 @@ start_sample_out = start_sample_in;
 end_sample_out = end_sample_in;
 window_num_out = window_num_in;
 PSD_per_window = zeros(num_windows, num_freqs);
+skewness_per_window = zeros(1,num_windows);
 % Loop over windows
 while (end_sample_in < N)
     % Segment time series
     y_segment = y_rv(start_sample_in:end_sample_in);
     % QC of this segment
     LTAS_QC_ind = LTAS_QC(y_segment);
-    if LTAS_QC_ind
+    % Skewness of this segment
+    skewness_val = skewness(y_segment);
+    if LTAS_QC_ind && (skewness_val<0)
         % This segment is OK, so proceed
         % Detrend per window?   
         if detrend_flag
@@ -63,6 +66,8 @@ while (end_sample_in < N)
             p_welch_t = p_welch.';
             PSD_per_window(window_num_out,:) = abs(p_welch_t(1:num_freqs));
         end
+        % Save skewness of this segment
+        skewness_per_window(window_num_out) = skewness_val;
         % Update y_mod (hann-windowed segment)
         y_mod(start_sample_out:end_sample_out) = hann_window.*y_detrended;
         % Prepare for next (good) segment
@@ -72,9 +77,11 @@ while (end_sample_in < N)
     else
         % This segment failed QC check, so issue warning and skip the
         % segment
-        fprintf("%s,%d,%s\n", "Segment ",window_num_in, "failed QC: Discontinuity");
-        %figure; plot(y_segment);
-    end    
+        if ~LTAS_QC_ind
+            fprintf("%s,%d,%s\n", "Segment ",window_num_in, "failed QC: Discontinuity");
+            %figure; plot(y_segment);
+        end
+    end   
     % Regardless of QC for this segment advance to next (input) segment
     start_sample_in = start_sample_in + floor(nfft/2); 
     end_sample_in = start_sample_in + nfft - 1;

@@ -30,10 +30,10 @@ project = 'OOI';
 % For OOI, specify whether shelf or offshore (for ooi)
 % 'LJ01D' is shelf broad-band hydrophone
 % 'LJ01C' is offshore broad-band hydrophone
-hydrophone = 'LJ01C';
+hydrophone = 'LJ01D';
 
 % Specify wind/rain bin
-bin_wind_rain_str = 'wind10m_3mps_rainrte_1mmphr';
+bin_wind_rain_str = 'wind10m_3mps_rainrte_3mmphr';
 
 % Spcify wav folder
 wav_foldername = strcat('C:\Users\SteveLockhart\Documents\Projects\moran\rain\ooi\binned_hydrophone_data\',bin_wind_rain_str,'\');
@@ -75,8 +75,9 @@ search_string = strcat(wav_foldername, hydrophone, '*.wav');
 dir_list = dir(search_string);
 num_files = length(dir_list);
 
+skewness_accum = [];
 % Loop on wav files
-for file_num = 1:num_files
+for file_num = 1:2
     % Prep for call
     wav_filename = dir_list(file_num).name;
     wav_filename_sans_ext = wav_filename(1:end-4);
@@ -88,7 +89,8 @@ for file_num = 1:num_files
     % also generates plots of PSD stats (median, 25%, 75%) as well as plots of decidecadal
     % spectral stats
     %LTAS_gen_PSD_array_per_wavfile(wav_foldername, wav_filename_sans_ext, nfft, calibration_struct)
-    [PSD_per_window_cal,frequency_Hz] = LTAS_gen_PSD_array_per_wavfile(wav_foldername, wav_filename_sans_ext, nfft, calibration_struct);
+    [PSD_per_window_cal,frequency_Hz,skewness_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_foldername, wav_filename_sans_ext, nfft, calibration_struct);
+    skewness_accum = [skewness_accum skewness_per_window];
     
     % Save
     save_filename = strcat(PSD_output_folder, wav_filename_sans_ext, '_PSD.mat');
@@ -97,6 +99,8 @@ for file_num = 1:num_files
     % Generate and plot stats for this PSD
     LTAS_gen_PSD_stats(PSD_per_window_cal,frequency_Hz)
 end
+
+figure; histogram(skewness_accum);
 
 
 

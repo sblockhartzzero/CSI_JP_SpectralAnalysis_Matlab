@@ -3,10 +3,10 @@
 % For OOI, specify whether shelf or offshore (for ooi)
 % 'LJ01D' is shelf broad-band hydrophone
 % 'LJ01C' is offshore broad-band hydrophone
-hydrophone = 'LJ01C';
+hydrophone = 'LJ01D';
 
 % Specify wind/rain bin
-bin_wind_rain_str = 'wind10m_3mps_rainrte_1mmphr';
+bin_wind_rain_str = 'wind10m_3mps_rainrte_3mmphr';
 
 % Specify folder for mat files to be concatenated together
 PSD_matfile_folder = strcat('../PSD/', bin_wind_rain_str,'/', hydrophone,'/');
