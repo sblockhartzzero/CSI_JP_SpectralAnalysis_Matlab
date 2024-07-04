@@ -36,13 +36,14 @@ hydrophone = 'LJ01D';
 bin_wind_rain_str = 'wind10m_3mps_rainrte_3mmphr';
 
 % Spcify wav folder
-wav_foldername = strcat('C:\Users\SteveLockhart\Documents\Projects\moran\rain\ooi\binned_hydrophone_data\',bin_wind_rain_str,'\');
+%                        C:\Users\SteveLockhart\Documents\Projects\moran\ooi\binned_hydrophone_data
+wav_foldername = strcat('C:\Users\SteveLockhart\Documents\Projects\moran\ooi\binned_hydrophone_data\',bin_wind_rain_str,'\');
 
 % PSD output folder
 PSD_output_folder = strcat('../PSD/', bin_wind_rain_str,'/', hydrophone,'/');
 
 % Specify window size for fft
-nfft = 2^18;
+nfft = 2^16;
 
 % Specify project-specific info: calibration
 switch project
@@ -76,8 +77,9 @@ dir_list = dir(search_string);
 num_files = length(dir_list);
 
 skewness_accum = [];
+std_accum = [];
 % Loop on wav files
-for file_num = 1:2
+for file_num = 1:num_files
     % Prep for call
     wav_filename = dir_list(file_num).name;
     wav_filename_sans_ext = wav_filename(1:end-4);
@@ -89,8 +91,9 @@ for file_num = 1:2
     % also generates plots of PSD stats (median, 25%, 75%) as well as plots of decidecadal
     % spectral stats
     %LTAS_gen_PSD_array_per_wavfile(wav_foldername, wav_filename_sans_ext, nfft, calibration_struct)
-    [PSD_per_window_cal,frequency_Hz,skewness_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_foldername, wav_filename_sans_ext, nfft, calibration_struct);
+    [PSD_per_window_cal,frequency_Hz,skewness_per_window,std_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_foldername, wav_filename_sans_ext, nfft, calibration_struct);
     skewness_accum = [skewness_accum skewness_per_window];
+    std_accum = [std_accum std_per_window];
     
     % Save
     save_filename = strcat(PSD_output_folder, wav_filename_sans_ext, '_PSD.mat');
@@ -100,7 +103,8 @@ for file_num = 1:2
     LTAS_gen_PSD_stats(PSD_per_window_cal,frequency_Hz)
 end
 
-figure; histogram(skewness_accum);
+figure; histogram(skewness_accum); title('Skewness');
+figure; plot(std_accum, skewness_accum,'bo'); title('Skewness vs. std-dev');
 
 
 

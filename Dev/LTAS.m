@@ -1,5 +1,5 @@
 
-function [PSD_per_window_out, frequency_Hz, y_mod, skewness_per_window] = LTAS(y_rv, Fs, nfft, detrend_flag)
+function [PSD_per_window_out, frequency_Hz, y_mod, skewness_per_window, std_per_window] = LTAS(y_rv, Fs, nfft, detrend_flag)
 % This script calculates and plots statistics on power spectral density (PSD)
 % for a specified file. It returns an array of PSD per window
 % Inputs
@@ -40,6 +40,7 @@ end_sample_out = end_sample_in;
 window_num_out = window_num_in;
 PSD_per_window = zeros(num_windows, num_freqs);
 skewness_per_window = zeros(1,num_windows);
+std_per_window = zeros(1,num_windows);
 % Loop over windows
 while (end_sample_in < N)
     % Segment time series
@@ -66,8 +67,6 @@ while (end_sample_in < N)
             p_welch_t = p_welch.';
             PSD_per_window(window_num_out,:) = abs(p_welch_t(1:num_freqs));
         end
-        % Save skewness of this segment
-        skewness_per_window(window_num_out) = skewness_val;
         % Update y_mod (hann-windowed segment)
         y_mod(start_sample_out:end_sample_out) = hann_window.*y_detrended;
         % Prepare for next (good) segment
@@ -81,7 +80,10 @@ while (end_sample_in < N)
             fprintf("%s,%d,%s\n", "Segment ",window_num_in, "failed QC: Discontinuity");
             %figure; plot(y_segment);
         end
-    end   
+    end  
+    % Save skewness of this segment
+    skewness_per_window(window_num_in) = skewness_val;
+    std_per_window(window_num_in) = std(y_segment);
     % Regardless of QC for this segment advance to next (input) segment
     start_sample_in = start_sample_in + floor(nfft/2); 
     end_sample_in = start_sample_in + nfft - 1;

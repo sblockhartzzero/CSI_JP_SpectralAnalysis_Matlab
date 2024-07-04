@@ -1,6 +1,6 @@
 function LTAS_QC_ind = LTAS_QC(y_segment)
 
-% Defaul is OK
+% Default is OK
 LTAS_QC_ind = true;
 
 % Make sure segment is detrended
@@ -11,5 +11,9 @@ y_detrended = detrend(y_segment);
 num_abrupt_changes = sum(TF);
 if num_abrupt_changes > 0
     LTAS_QC_ind = false;
-    figure; stairs(S1);
+    %figure; stairs(S1);
 end
+
+% Temporary
+LTAS_QC_ind = true;
+

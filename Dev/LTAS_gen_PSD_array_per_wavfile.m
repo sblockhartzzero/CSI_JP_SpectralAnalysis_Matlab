@@ -1,4 +1,4 @@
-function [PSD_per_window_cal,frequency_Hz,skewness_per_window] = LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext, nfft, calibration_struct)
+function [PSD_per_window_cal,frequency_Hz,skewness_per_window, std_per_window] = LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext, nfft, calibration_struct)
 % For the specified wav file, generate stats on PSD e.g. median, 25th, 75th percentile
 % curves as per IEC specification and save to a mat file. 
 
@@ -43,9 +43,9 @@ colormap('parula');
 caxis([-120 -80]);
 
 % Call LTAS
-detrend_flag = false;
+detrend_flag = true;
 % Note PSD_per_window is #windows x #freqs
-[PSD_per_window, frequency_Hz, y_mod, skewness_per_window] = LTAS(y_sub_t, Fs, nfft, detrend_flag);
+[PSD_per_window, frequency_Hz, y_mod, skewness_per_window, std_per_window] = LTAS(y_sub_t, Fs, nfft, detrend_flag);
 [num_windows, num_freqs] = size(PSD_per_window);
 
 % Look at var before cal factor applied
