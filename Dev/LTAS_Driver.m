@@ -10,40 +10,62 @@
 % -Move these input files to the wav_foldername (below)
 
 % To do:
-% Loop through all wav files
 % Need to adjust for comparison to variance (in time domain)? See IEC spec.
 % Out of memory if time series too long?
+% Get calibration_struct info from wav file automatically for project='CSI'
 clear all;
-%close all;
-
-% To do:
-% -loop through files for a specified wind/rain bin for a specified
-%  location i.e. all 'LJ01D' at 'wind10m_3mps_rainrte_1mmphr'; set 
-%  cal_info_file accordingly.
+close all;
 
 
 %% User input
 % Specify project e.g. 'CSI' or 'OOI'
-project = 'OOI';
+project = 'CSI';
 
-% Specify hydrophone e.g. so we can lookup cal per hydrophone
-% For OOI, specify whether shelf or offshore (for ooi)
-% 'LJ01D' is shelf broad-band hydrophone
-% 'LJ01C' is offshore broad-band hydrophone
-hydrophone = 'LJ01D';
+% Specify project-specific info: input folders/files, output folders, nfft
+switch project
+    case 'CSI'
+        % Specify window size for fft
+        nfft = 2^19;
 
-% Specify wind/rain bin
-bin_wind_rain_str = 'wind10m_3mps_rainrte_3mmphr';
+        % Specify wav folder
+        external_drive = false;
+        if ~external_drive
+            wav_foldername = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test\';
+        else
+            wav_foldername = 'D:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_23\23April21\23April21\';
+        end
 
-% Spcify wav folder
-%                        C:\Users\SteveLockhart\Documents\Projects\moran\ooi\binned_hydrophone_data
-wav_foldername = strcat('C:\Users\SteveLockhart\Documents\Projects\moran\ooi\binned_hydrophone_data\',bin_wind_rain_str,'\');
+        % Specify search string for wav file in wav folder
+        search_string = strcat(wav_foldername, '*.wav');
 
-% PSD output folder
-PSD_output_folder = strcat('../PSD/', bin_wind_rain_str,'/', hydrophone,'/');
+        % Specify PSD output folder
+        PSD_output_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\';
 
-% Specify window size for fft
-nfft = 2^16;
+    case 'OOI'
+        % Specify window size for fft
+        nfft = 2^16;
+        
+        % Specify hydrophone e.g. so we can lookup cal per hydrophone
+        % For OOI, specify whether shelf or offshore (for ooi)
+        % 'LJ01D' is shelf broad-band hydrophone
+        % 'LJ01C' is offshore broad-band hydrophone
+        hydrophone = 'LJ01D';
+        
+        % Specify wind/rain bin
+        bin_wind_rain_str = 'wind10m_3mps_rainrte_3mmphr';
+        
+        % Specify wav folder
+        wav_foldername = strcat('C:\Users\SteveLockhart\Documents\Projects\moran\ooi\binned_hydrophone_data\',bin_wind_rain_str,'\');
+
+        % Specify search string for wav file in wav folder
+        search_string = strcat(wav_foldername, hydrophone, '*.wav');
+        
+        % PSD output folder
+        PSD_output_folder = strcat('../PSD/', bin_wind_rain_str,'/', hydrophone,'/');
+
+    otherwise
+        error('Unknown project');
+end    
 
 % Specify project-specific info: calibration
 switch project
@@ -53,7 +75,7 @@ switch project
         % Comment: '3.000000 V pk, -171 dBV re 1uPa (sensitivity)
         calibration_struct.freq_dependent = false;
         calibration_struct.dBV_re_1uPa = -171;
-        calibration_struct.V_pk = 1.0;
+        calibration_struct.V_pk = 3.0;
     case 'OOI'
         % Get frequency dependent cal info from a mat file
         cal_info_folder = 'C:\Users\SteveLockhart\Documents\Projects\moran\rain\ooi\cal_info\';
@@ -66,18 +88,19 @@ switch project
         figure; plot(calibration_struct.f_cal,calibration_struct.cal_adj_dB);
                 title('Calibration')
     otherwise
-        error('Unknown experiment');
+        error('Unknown project');
 end
 
 
 %% Call
 % Get list of wav files for this wind/rain bin and location
-search_string = strcat(wav_foldername, hydrophone, '*.wav');
 dir_list = dir(search_string);
 num_files = length(dir_list);
 
+% Init
 skewness_accum = [];
 std_accum = [];
+
 % Loop on wav files
 for file_num = 1:num_files
     % Prep for call
@@ -99,10 +122,11 @@ for file_num = 1:num_files
     save_filename = strcat(PSD_output_folder, wav_filename_sans_ext, '_PSD.mat');
     save(save_filename,'PSD_per_window_cal','frequency_Hz');
     
-    % Generate and plot stats for this PSD
+    % Generate and plot stats for this PSD i.e. per wavefile
     LTAS_gen_PSD_stats(PSD_per_window_cal,frequency_Hz)
 end
 
+% Plos
 figure; histogram(skewness_accum); title('Skewness');
 figure; plot(std_accum, skewness_accum,'bo'); title('Skewness vs. std-dev');
 
