@@ -1,9 +1,6 @@
 % Get stats on PSD per file e.g. median, 25th, 75th percentile
 % as per IEC specification
 
-% LTAS_Driver > LTAS_gen_PSD_array_per_wavfile  > LTAS > LTAS_QC
-%                                               > LTAS_gen_PSD_stats > LTAS_gen_decidecadal_spectrum >  LTAS_PSD_to_spectrum
-
 % Prerequisite:
 % -Download ooi wav files using python code in C:\Users\SteveLockhart\Documents\Projects\moran\rain\ooi\python
 % -Download associated cal info using  jupyter notebook in C:\Users\SteveLockhart\github\ooipy
@@ -13,6 +10,7 @@
 % Need to adjust for comparison to variance (in time domain)? See IEC spec.
 % Out of memory if time series too long?
 % Get calibration_struct info from wav file automatically for project='CSI'
+% Check sample rate
 clear all;
 close all;
 
