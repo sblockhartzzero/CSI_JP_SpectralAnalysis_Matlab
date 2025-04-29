@@ -9,18 +9,17 @@
 % Specify project CSI or OOI
 project = 'CSI';
 
-% Specify project-specific info
+% Specify project-specific user input
 switch project
     case 'CSI'
-        % Specify bin_number
-        bin_number = 1;
+        % Specify wind speed range in m/s
+        wind_speed_range = [0 3.0];
 
-        % Specify folder for mat files
+        % Specify folder for PSD mat files
         matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\';
 
-        % Get list of PSD matfiles for this bin (a subset of the files in
-        % the single matfile_folder)
-        dir_list = get_PSD_matfiles_per_bin(bin_number, matfile_folder);
+        % Specify fullpath to wind_per_wav.csv
+        wind_per_wav_fullpath = "C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\wind_per_wav.csv";
 
     case 'OOI'
         % Specify hydrophone e.g. so we can lookup cal per hydrophone
@@ -38,15 +37,25 @@ switch project
         % Search string for *_PSD.mat files
         search_string = strcat(PSD_matfile_folder,'*PSD.mat');
 
-        % Get list of mat files (already stored in a folder per bin)
-        dir_list = dir(search_string);
-
     otherwise
         error('Unknown project');
 end
 
 
-%% Processing
+%% Project-specific processing% Specify project-specific user input
+switch project
+    case 'CSI'
+        % Get list of PSD matfiles for this bin (a subset of the files in
+        % the single matfile_folder)
+        dir_list = get_PSD_matfiles_per_bin(wind_speed_range, wind_per_wav_fullpath, matfile_folder);
+
+    case 'OOI'
+        % Get list of mat files (already stored in a folder per bin)
+        dir_list = dir(search_string);
+end        
+
+
+%% Processing (same for all projects)
 % Init
 num_files = length(dir_list);
 
