@@ -66,9 +66,9 @@ if calibration_struct.freq_dependent
     end
 else
     % Constant factor
-    cal_factor_dB = -calibration_struct.dBV_re_1uPa;
+    cal_factor_dB = calibration_struct.dBV_re_1uPa;
     V_pk = calibration_struct.V_pk;
-    cal_factor = V_pk*10^(cal_factor_dB/10);
+    cal_factor = V_pk/10^(cal_factor_dB/10);            % volts / (volts/uPa) = uPa
     PSD_per_window_cal = cal_factor*PSD_per_window;
 end
 

@@ -4,7 +4,7 @@
 % Prerequisite:
 % -Download ooi wav files using python code in C:\Users\SteveLockhart\Documents\Projects\moran\rain\ooi\python
 % -Download associated cal info using  jupyter notebook in C:\Users\SteveLockhart\github\ooipy
-% -Move these input files to the wav_foldername (below)
+% -Move these input files to the wav_folder (below)
 
 % To do:
 % Need to adjust for comparison to variance (in time domain)? See IEC spec.
@@ -28,16 +28,16 @@ switch project
         % Specify wav folder
         external_drive = false;
         if ~external_drive
-            wav_foldername = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test\';
+            wav_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test_Manta\';
         else
-            wav_foldername = 'D:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_23\23April21\23April21\';
+            wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_23\23April21\23April21\';
         end
 
         % Specify search string for wav file in wav folder
-        search_string = strcat(wav_foldername, '*.wav');
+        search_string = strcat(wav_folder, '*.wav');
 
         % Specify PSD output folder
-        PSD_output_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\';
+        PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\';
 
     case 'OOI'
         % Specify window size for fft
@@ -53,13 +53,13 @@ switch project
         bin_wind_rain_str = 'wind10m_3mps_rainrte_3mmphr';
         
         % Specify wav folder
-        wav_foldername = strcat('C:\Users\SteveLockhart\Documents\Projects\moran\ooi\binned_hydrophone_data\',bin_wind_rain_str,'\');
+        wav_folder = strcat('C:\Users\SteveLockhart\Documents\Projects\moran\ooi\binned_hydrophone_data\',bin_wind_rain_str,'\');
 
         % Specify search string for wav file in wav folder
-        search_string = strcat(wav_foldername, hydrophone, '*.wav');
+        search_string = strcat(wav_folder, hydrophone, '*.wav');
         
         % PSD output folder
-        PSD_output_folder = strcat('../PSD/', bin_wind_rain_str,'/', hydrophone,'/');
+        PSD_matfile_folder = strcat('../PSD/', bin_wind_rain_str,'/', hydrophone,'/');
 
     otherwise
         error('Unknown project');
@@ -104,20 +104,20 @@ for file_num = 1:num_files
     % Prep for call
     wav_filename = dir_list(file_num).name;
     wav_filename_sans_ext = wav_filename(1:end-4);
-    wavfile_fullpath = strcat(wav_foldername, wav_filename);
+    wavfile_fullpath = strcat(wav_folder, wav_filename);
     info = audioinfo(wavfile_fullpath)
 
-    % Call LTAS_gen_PSD_per_wavfile(wav_foldername, wav_filename_sans_ext) to generate (and save)
+    % Call LTAS_gen_PSD_per_wavfile(wav_folder, wav_filename_sans_ext) to generate (and save)
     % an array of PSDs (per window) with a frequency resolution of 1 Hz. It
     % also generates plots of PSD stats (median, 25%, 75%) as well as plots of decidecadal
     % spectral stats
-    %LTAS_gen_PSD_array_per_wavfile(wav_foldername, wav_filename_sans_ext, nfft, calibration_struct)
-    [PSD_per_window_cal,frequency_Hz,skewness_per_window,std_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_foldername, wav_filename_sans_ext, nfft, calibration_struct);
+    %LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct)
+    [PSD_per_window_cal,frequency_Hz,skewness_per_window,std_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct);
     skewness_accum = [skewness_accum skewness_per_window];
     std_accum = [std_accum std_per_window];
     
     % Save
-    save_filename = strcat(PSD_output_folder, wav_filename_sans_ext, '_PSD.mat');
+    save_filename = strcat(PSD_matfile_folder, wav_filename_sans_ext, '_PSD.mat');
     save(save_filename,'PSD_per_window_cal','frequency_Hz');
     
     % Generate and plot stats for this PSD i.e. per wavefile

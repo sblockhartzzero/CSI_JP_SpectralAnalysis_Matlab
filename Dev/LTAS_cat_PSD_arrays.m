@@ -16,7 +16,7 @@ switch project
         wind_speed_range = [0 3.0];
 
         % Specify folder for PSD mat files
-        matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\';
+        PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\';
 
         % Specify fullpath to wind_per_wav.csv
         wind_per_wav_fullpath = "C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\wind_per_wav.csv";
@@ -32,7 +32,7 @@ switch project
         bin_wind_rain_str = 'wind10m_3mps_rainrte_3mmphr';
 
         % Specify folder for mat files
-        matfile_folder = strcat('../PSD/', bin_wind_rain_str,'/', hydrophone,'/');
+        PSD_matfile_folder = strcat('../PSD/', bin_wind_rain_str,'/', hydrophone,'/');
 
         % Search string for *_PSD.mat files
         search_string = strcat(PSD_matfile_folder,'*PSD.mat');
@@ -46,8 +46,8 @@ end
 switch project
     case 'CSI'
         % Get list of PSD matfiles for this bin (a subset of the files in
-        % the single matfile_folder)
-        dir_list = get_PSD_matfiles_per_bin(wind_speed_range, wind_per_wav_fullpath, matfile_folder);
+        % the single PSD_matfile_folder)
+        dir_list = get_PSD_matfiles_per_bin(wind_speed_range, wind_per_wav_fullpath, PSD_matfile_folder);
 
     case 'OOI'
         % Get list of mat files (already stored in a folder per bin)
@@ -61,7 +61,7 @@ num_files = length(dir_list);
 
 % Loop through files, loading
 cwd = pwd;
-cd(matfile_folder);
+cd(PSD_matfile_folder);
 tot_num_rows = 0;
 PSD_per_window_cal_all = [];
 for file_num = 1:num_files
