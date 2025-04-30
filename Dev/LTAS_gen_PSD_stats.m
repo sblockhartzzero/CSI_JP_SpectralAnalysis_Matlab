@@ -26,6 +26,15 @@ figure; semilogx(frequency_Hz,med_PSD_dB,'k-'); hold on;
         xlabel('Frequency [Hz]');
         ylabel('PSD [dB re1uPa^2/Hz]');  
 
+        % Plots of PSD stats
+figure; plot(frequency_Hz,med_PSD_dB,'k-'); hold on;
+        plot(frequency_Hz,pct25_PSD_dB,'b--');
+        plot(frequency_Hz,pct75_PSD_dB,'b--');
+        legend('Median','25%','75%');
+        title('Power Spectral Density');
+        xlabel('Frequency [Hz]');
+        ylabel('PSD [dB re1uPa^2/Hz]');  
+
 % Get decidecadal spectra
 interp_flag = true;
 [med_dd_spectrum_dB, frequency_dd_Hz] = LTAS_gen_decidecadal_spectrum(frequency_Hz,med_PSD,interp_flag);

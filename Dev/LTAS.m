@@ -60,12 +60,13 @@ while (end_sample_in < N)
         % PSD for this window
         [p_welch,f_welch] = pwelch(y_detrended,hann(nfft),[],nfft,Fs,'psd');
         % Stuff PSD for this window into an array, first making sure it is a
-        % row-vector
+        % row-vector. Also, multiply by pi so the units are per Hz instead
+        % of per radian. (pi instead of 2*pi because it is single-sided.)
         if isrow(p_welch)
-            PSD_per_window(window_num_out,:) = abs(p_welch(1:num_freqs));
+            PSD_per_window(window_num_out,:) = pi*abs(p_welch(1:num_freqs));
         else
             p_welch_t = p_welch.';
-            PSD_per_window(window_num_out,:) = abs(p_welch_t(1:num_freqs));
+            PSD_per_window(window_num_out,:) = pi*abs(p_welch_t(1:num_freqs));
         end
         % Update y_mod (hann-windowed segment)
         y_mod(start_sample_out:end_sample_out) = hann_window.*y_detrended;
