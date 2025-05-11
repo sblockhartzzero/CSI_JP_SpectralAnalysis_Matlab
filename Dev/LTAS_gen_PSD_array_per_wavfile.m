@@ -19,20 +19,28 @@ sum(qc_idx)
 figure; histogram(y_diff, 20); title('y diff');
 %{
 figure; plot(t, y, 'b-'); hold on;
-        %plot(t(qc_idx), y(qc_idx), 'ro');
+        plot(t(qc_idx), y(qc_idx), 'ro');
         title('Input time series');
 %}
 
 % Subset
 % Turn off subset
-%{
-start_pos =1;
-end_pos  = 64*512000;
+start_pos =123*512000;
+end_pos  = 299*512000;
 y_sub = y(start_pos:end_pos);
 y_sub_t = y_sub.';
-%}
+t_sub = t(start_pos:end_pos);
+%{
 y_sub = y;
 y_sub_t = y_sub.';
+t_sub = t;
+%}
+
+% Plot time series
+figure; plot(t,y,'b-'); hold on;
+        plot(t_sub, y_sub_t,'ro-');
+        title('time series')
+
 
 % Spectrogram
 %nfft = 2^19; 

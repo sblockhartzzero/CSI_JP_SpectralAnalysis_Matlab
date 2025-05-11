@@ -44,12 +44,15 @@ std_per_window = zeros(1,num_windows);
 % Loop over windows
 while (end_sample_in < N)
     % Segment time series
+    %start_sample_in
+    %end_sample_in
     y_segment = y_rv(start_sample_in:end_sample_in);
     % QC of this segment
-    LTAS_QC_ind = LTAS_QC(y_segment);
+    [LTAS_QC_ind, reason] = LTAS_QC(y_segment, Fs);
     % Skewness of this segment
     skewness_val = skewness(y_segment);
-    if LTAS_QC_ind && (skewness_val<0)
+    if LTAS_QC_ind
+    %if LTAS_QC_ind && (skewness_val<0)
         % This segment is OK, so proceed
         % Detrend per window?   
         if detrend_flag
@@ -78,7 +81,7 @@ while (end_sample_in < N)
         % This segment failed QC check, so issue warning and skip the
         % segment
         if ~LTAS_QC_ind
-            fprintf("%s,%d,%s\n", "Segment ",window_num_in, "failed QC: Discontinuity");
+            fprintf("%s %d %s %s\n", "WARN: Segment",window_num_in, "failed QC due to:",reason);
             %figure; plot(y_segment);
         end
     end  

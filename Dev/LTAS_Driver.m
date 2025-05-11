@@ -124,7 +124,10 @@ for file_num = 1:num_files
     LTAS_gen_PSD_stats(PSD_per_window_cal,frequency_Hz)
 end
 
-% Plos
+% Plots
+% Std dev
+figure; plot(std_per_window,'bo-')
+% Skewness
 figure; histogram(skewness_accum); title('Skewness');
 figure; plot(std_accum, skewness_accum,'bo'); title('Skewness vs. std-dev');
 
