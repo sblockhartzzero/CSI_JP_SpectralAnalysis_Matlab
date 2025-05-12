@@ -126,10 +126,17 @@ end
 
 % Plots
 % Std dev
-figure; plot(std_per_window,'bo-')
+figure; plot(std_per_window,'bo-');
+        title('std-dev per window for last wav file');
+figure; histogram(std_per_window);
+        title('Histogram of std-dev per window for last wav file');
 % Skewness
-figure; histogram(skewness_accum); title('Skewness');
-figure; plot(std_accum, skewness_accum,'bo'); title('Skewness vs. std-dev');
+figure; plot(skewness_per_window); 
+        title('Skewness per window for last wav file');
+figure; histogram(skewness_per_window); 
+        title('Histogram of skewness for last wav file');
+figure; plot(std_per_window, skewness_per_window,'bo'); 
+        title('Skewness vs. std-dev for last wav file');
 
 
 

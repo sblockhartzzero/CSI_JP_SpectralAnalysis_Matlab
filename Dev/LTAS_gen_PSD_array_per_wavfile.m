@@ -25,16 +25,17 @@ figure; plot(t, y, 'b-'); hold on;
 
 % Subset
 % Turn off subset
+%{
 start_pos =123*512000;
 end_pos  = 299*512000;
 y_sub = y(start_pos:end_pos);
 y_sub_t = y_sub.';
 t_sub = t(start_pos:end_pos);
-%{
+%}
 y_sub = y;
 y_sub_t = y_sub.';
 t_sub = t;
-%}
+
 
 % Plot time series
 figure; plot(t,y,'b-'); hold on;
@@ -53,14 +54,16 @@ caxis([-120 -80]);
 % Call LTAS
 detrend_flag = true;
 % Note PSD_per_window is #windows x #freqs
-[PSD_per_window, frequency_Hz, y_mod, skewness_per_window, std_per_window] = LTAS(y_sub_t, Fs, nfft, detrend_flag);
+[PSD_per_window, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_sub_t, Fs, nfft, detrend_flag);
 [num_windows, num_freqs] = size(PSD_per_window);
 
 % Look at var before cal factor applied
+%{
 med_PSD = median(PSD_per_window);
 mean_PSD = mean(PSD_per_window);
 fprintf("Power (med) over PSD = %s\n",num2str(median(diff(frequency_Hz))*sum(med_PSD)));
 fprintf("Power (mean) over PSD = %s\n",num2str(median(diff(frequency_Hz))*sum(mean_PSD)));
+%}
 
 % Apply calibration factor in order to convert to uPa
 if calibration_struct.freq_dependent
@@ -81,6 +84,6 @@ else
 end
 
 % Var
+%{
 fprintf("Var of subset=%s\n", num2str(var(y_sub_t)));
-fprintf("Var of modified subset=%s\n", num2str(var(y_mod)));
-
+%}

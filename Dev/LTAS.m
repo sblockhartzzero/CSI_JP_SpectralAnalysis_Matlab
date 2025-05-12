@@ -1,5 +1,5 @@
 
-function [PSD_per_window_out, frequency_Hz, y_mod, skewness_per_window, std_per_window] = LTAS(y_rv, Fs, nfft, detrend_flag)
+function [PSD_per_window_out, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_rv, Fs, nfft, detrend_flag)
 % This script calculates and plots statistics on power spectral density (PSD)
 % for a specified file. It returns an array of PSD per window
 % Inputs
@@ -11,41 +11,35 @@ function [PSD_per_window_out, frequency_Hz, y_mod, skewness_per_window, std_per_
 %                   assume 50% overlap on windows
 %                   frequency resolution is 1 Hz
 %   frequency_Hz:   frequency array of dim 1x#freqs
-%   y_mod:          input time series, modified by 50%-overlapping hann-windowing
-%                   as well as detrending per window
 %
+%   The following are of dim 1x#windows:
+%                   skewness_per_window, std_per_window, t_per_window
 
 
 % Derived values
 N = length(y_rv);
-%nfft = 2^19;
-%nfft = Fs;
 num_windows = floor( (N/(nfft/2)) );
-%num_freqs = min(100001,floor(1 + nfft/2));
 num_freqs = floor(1 + nfft/2);
 
-% Init y_mod
-y_mod = y_rv;
+% time base
+t = (1:N)/Fs;
 
 % PSD
 % Init before looping
 hann_window = (hann(nfft)).';
-% Variables for input time series
+% Variables for input time series y_rv
 start_sample_in = 1;
-end_sample_in = nfft; % For 1 Hz frequency resolution
+end_sample_in = nfft; % Approximately 1 Hz frequency resolution
 window_num_in = 1;
-% Variables for output time series
-start_sample_out = start_sample_in;
-end_sample_out = end_sample_in;
+% Variables for output time series 
 window_num_out = window_num_in;
 PSD_per_window = zeros(num_windows, num_freqs);
 skewness_per_window = zeros(1,num_windows);
 std_per_window = zeros(1,num_windows);
+t_per_window = zeros(1,num_windows);
 % Loop over windows
 while (end_sample_in < N)
     % Segment time series
-    %start_sample_in
-    %end_sample_in
     y_segment = y_rv(start_sample_in:end_sample_in);
     % QC of this segment
     [LTAS_QC_ind, reason] = LTAS_QC(y_segment, Fs);
@@ -71,11 +65,7 @@ while (end_sample_in < N)
             p_welch_t = p_welch.';
             PSD_per_window(window_num_out,:) = pi*abs(p_welch_t(1:num_freqs));
         end
-        % Update y_mod (hann-windowed segment)
-        y_mod(start_sample_out:end_sample_out) = hann_window.*y_detrended;
-        % Prepare for next (good) segment
-        start_sample_out = start_sample_out + floor(nfft/2); 
-        end_sample_out = start_sample_out + nfft - 1;
+        % Increment counterfor good windows
         window_num_out = window_num_out + 1;
     else
         % This segment failed QC check, so issue warning and skip the
