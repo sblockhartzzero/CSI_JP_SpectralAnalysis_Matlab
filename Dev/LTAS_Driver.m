@@ -19,6 +19,18 @@ close all;
 % Specify project e.g. 'CSI' or 'OOI'
 project = 'CSI';
 
+% Specify whether using preview mode (true or false)
+% Preview mode returns std-dev, skewness per window without performing the
+% PSD
+preview_mode = true;
+
+% Specify offset (in seconds) from beginning/end of wav file
+% This allows for entry/exit from water
+% i.e. start 30 seconds into the wav file and end 30 seconds before the end
+% of the wav file. These defaults can be overriden by the
+% *_good_segment.mat file
+default_offset_secs = 30;
+
 % Specify project-specific info: input folders/files, output folders, nfft
 switch project
     case 'CSI'
@@ -28,7 +40,7 @@ switch project
         % Specify wav folder
         external_drive = false;
         if ~external_drive
-            wav_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test_Manta\';
+            wav_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test\';
         else
             wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_23\23April21\23April21\';
         end
@@ -102,42 +114,57 @@ std_accum = [];
 % Loop on wav files
 for file_num = 1:num_files
     % Prep for call
+    % Get wav_filename_sans_ext
     wav_filename = dir_list(file_num).name;
     wav_filename_sans_ext = wav_filename(1:end-4);
     wavfile_fullpath = strcat(wav_folder, wav_filename);
     info = audioinfo(wavfile_fullpath)
+
+    % Prep for call
+    % Get good_segment if available
+    good_segment_mat_fullpath = strcat(PSD_matfile_folder,wav_filename_sans_ext,'_good_segment.mat');
+    if isfile(good_segment_mat_fullpath)
+        good_segment = load(good_segment_mat_fullpath);
+        good_segment_array = [good_segment.start_sample good_segment.end_sample];
+    else
+        start_sample = floor(info.SampleRate*default_offset_secs);
+        end_sample = info.TotalSamples - floor(info.SampleRate*default_offset_secs);
+        good_segment_array = [start_sample end_sample]; 
+    end
+
 
     % Call LTAS_gen_PSD_per_wavfile(wav_folder, wav_filename_sans_ext) to generate (and save)
     % an array of PSDs (per window) with a frequency resolution of 1 Hz. It
     % also generates plots of PSD stats (median, 25%, 75%) as well as plots of decidecadal
     % spectral stats
     %LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct)
-    [PSD_per_window_cal,frequency_Hz,skewness_per_window,std_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct);
+    [PSD_per_window_cal,frequency_Hz,skewness_per_window,std_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct, good_segment_array, preview_mode);
     skewness_accum = [skewness_accum skewness_per_window];
     std_accum = [std_accum std_per_window];
     
-    % Save
-    save_filename = strcat(PSD_matfile_folder, wav_filename_sans_ext, '_PSD.mat');
-    save(save_filename,'PSD_per_window_cal','frequency_Hz');
+    if ~preview_mode
+        % Save
+        save_filename = strcat(PSD_matfile_folder, wav_filename_sans_ext, '_PSD.mat');
+        save(save_filename,'PSD_per_window_cal','frequency_Hz');
+        
+        % Generate and plot stats for this PSD i.e. per wavefile
+        LTAS_gen_PSD_stats(PSD_per_window_cal,frequency_Hz)
+    end
+
+    % Generate plots per wav file
+
+    % Std dev
+    figure; plot(std_per_window,'bo-');
+            title('std-dev per window for wav file');
+    figure; histogram(std_per_window);
+            title('Histogram of std-dev per window for wav file');
+    % Skewness
+    figure; plot(skewness_per_window); 
+            title('Skewness per window for wav file');
+    figure; histogram(skewness_per_window); 
+            title('Histogram of skewness for wav file');
+    figure; plot(std_per_window, skewness_per_window,'bo'); 
+            title('Skewness vs. std-dev for wav file');
     
-    % Generate and plot stats for this PSD i.e. per wavefile
-    LTAS_gen_PSD_stats(PSD_per_window_cal,frequency_Hz)
 end
-
-% Plots
-% Std dev
-figure; plot(std_per_window,'bo-');
-        title('std-dev per window for last wav file');
-figure; histogram(std_per_window);
-        title('Histogram of std-dev per window for last wav file');
-% Skewness
-figure; plot(skewness_per_window); 
-        title('Skewness per window for last wav file');
-figure; histogram(skewness_per_window); 
-        title('Histogram of skewness for last wav file');
-figure; plot(std_per_window, skewness_per_window,'bo'); 
-        title('Skewness vs. std-dev for last wav file');
-
-
-
 
