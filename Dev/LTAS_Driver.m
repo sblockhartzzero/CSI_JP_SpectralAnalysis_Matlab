@@ -31,6 +31,10 @@ preview_mode = true;
 % *_good_segment.mat file
 default_offset_secs = 30;
 
+% Switches for plotting
+plots_per_wav_file = false;
+plots_per_folder = true;
+
 % Specify project-specific info: input folders/files, output folders, nfft
 switch project
     case 'CSI'
@@ -38,14 +42,16 @@ switch project
         nfft = 2^19;
 
         % Specify wav folder
-        external_drive = false;
+        external_drive = true;
         if ~external_drive
             wav_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test\';
         else
-            wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_23\23April21\23April21\';
+            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic background\2023_07_07\070723\';
+            wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic background\2024_03_14\03-14-2024_WEC_Deployment_ Background\';
         end
 
         % Specify search string for wav file in wav folder
+        %search_string = strcat(wav_folder, 'SCW1984_20230707*.wav');
         search_string = strcat(wav_folder, '*.wav');
 
         % Specify PSD output folder
@@ -152,19 +158,35 @@ for file_num = 1:num_files
     end
 
     % Generate plots per wav file
-
-    % Std dev
-    figure; plot(std_per_window,'bo-');
-            title('std-dev per window for wav file');
-    figure; histogram(std_per_window);
-            title('Histogram of std-dev per window for wav file');
-    % Skewness
-    figure; plot(skewness_per_window); 
-            title('Skewness per window for wav file');
-    figure; histogram(skewness_per_window); 
-            title('Histogram of skewness for wav file');
-    figure; plot(std_per_window, skewness_per_window,'bo'); 
-            title('Skewness vs. std-dev for wav file');
-    
+    if ((num_files<10) && (plots_per_wav_file))
+        % Std dev
+        figure; plot(std_per_window,'bo-');
+                title('std-dev per window for wav file');
+        figure; histogram(std_per_window);
+                title('Histogram of std-dev per window for wav file');
+        % Skewness
+        figure; plot(skewness_per_window); 
+                title('Skewness per window for wav file');
+        figure; histogram(skewness_per_window); 
+                title('Histogram of skewness for wav file');
+        figure; plot(std_per_window, skewness_per_window,'bo'); 
+                title('Skewness vs. std-dev for wav file');
+    end
 end
 
+if plots_per_folder
+    % Std dev
+    figure; semilogy(std_accum,'bo-');
+            title('std-dev per window');
+            xlabel('Window number (50 pct overlap, 1-sec windows)');
+            ylabel('std-dev');
+    figure; histogram(std_accum);
+            title('Histogram of std-dev per window');
+    % Skewness
+    figure; plot(skewness_accum); 
+            title('Skewness per window');
+    figure; histogram(skewness_accum); 
+            title('Histogram of skewness');
+    figure; plot(std_accum, skewness_accum,'bo'); 
+            title('Skewness vs. std-dev');
+end

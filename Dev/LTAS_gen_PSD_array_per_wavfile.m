@@ -5,6 +5,9 @@ function [PSD_per_window_cal,frequency_Hz,skewness_per_window, std_per_window] =
 % 05/29/2022
 % Added calibration_factor, so PSD is in uPa
 
+% Debug flag for plots
+debug = false;
+
 % Read wav file
 wavfile_fullpath = strcat(foldername, filename_sans_ext, '.wav');
 [y,Fs] = audioread(wavfile_fullpath);
@@ -16,7 +19,10 @@ y_diff = log10(abs(diff(y)));
 y_diff_padded = [0 y_diff.'];
 qc_idx = (y_diff_padded>-2.0);
 sum(qc_idx)
-figure; histogram(y_diff, 20); title('y diff');
+
+if debug
+    figure; histogram(y_diff, 20); title('y diff');
+end
 %{
 figure; plot(t, y, 'b-'); hold on;
         plot(t(qc_idx), y(qc_idx), 'ro');
