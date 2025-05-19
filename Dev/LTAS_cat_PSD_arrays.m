@@ -13,7 +13,11 @@ project = 'CSI';
 switch project
     case 'CSI'
         % Specify wind speed range in m/s
-        wind_speed_range = [0 3.0];
+        wind_speed_range = [2.0 4.0];
+
+        % Specify wind dir range in degrees clockwaise from North (that
+        % wind is coming FROM)
+        wind_dir_range = [180 225];
 
         % Specify folder for PSD mat files
         PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\';
@@ -47,7 +51,7 @@ switch project
     case 'CSI'
         % Get list of PSD matfiles for this bin (a subset of the files in
         % the single PSD_matfile_folder)
-        dir_list = get_PSD_matfiles_per_bin(wind_speed_range, wind_per_wav_fullpath, PSD_matfile_folder);
+        dir_list = get_PSD_matfiles_per_bin(wind_speed_range, wind_dir_range, wind_per_wav_fullpath, PSD_matfile_folder);
 
     case 'OOI'
         % Get list of mat files (already stored in a folder per bin)

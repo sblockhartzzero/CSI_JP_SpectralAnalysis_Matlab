@@ -1,4 +1,4 @@
-function dir_list = get_PSD_matfiles_per_bin(wind_speed_range, wind_per_wav_fullpath, matfile_folder)
+function dir_list = get_PSD_matfiles_per_bin(wind_speed_range, wind_dir_range, wind_per_wav_fullpath, matfile_folder)
 
 % Load the wind_per_wav.csv from wind_per_wav_fullpath
 % to see which *_PSD mat files are in this wind_speed_range.
@@ -17,7 +17,8 @@ wind_speed_array = table2array(A(:,2));
 wind_dir_array = table2array(A(:,3));
 
 % Subset, where wind_speed is in range
-wind_speed_array_idx = find( (wind_speed_array>=wind_speed_range(1)) & (wind_speed_array<wind_speed_range(2)));
+wind_speed_array_idx = find( ( (wind_speed_array>=wind_speed_range(1)) & (wind_speed_array<wind_speed_range(2)) ) & ...
+                             ( (wind_dir_array>=wind_dir_range(1)) & (wind_dir_array<wind_dir_range(2)) ) );
 wav_filename_sans_ext_array_subsetted = wav_filename_sans_ext_array(wind_speed_array_idx);
 num_wav_files_subsetted = length(wav_filename_sans_ext_array_subsetted);
 
