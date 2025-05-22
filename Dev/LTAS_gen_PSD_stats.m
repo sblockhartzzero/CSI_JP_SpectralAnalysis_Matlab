@@ -1,5 +1,16 @@
 function LTAS_gen_PSD_stats(PSD_per_window,frequency_Hz)
 
+% Generate plots of PSD and decidecadal spectra 
+%{
+INPUTS:
+
+PSD_per_window_cal:         Array of power spectral density (in linear units i.e. microPascal^2/Hz), 
+                            i.e. after the calibration information is applied
+                            The array is of dimension #windows x #freqs
+                            It could be for a single wav file or for all the wav files in a bin.                           
+frequency_Hz:               The frequency values (in Hz) associated with PSD_per_window_cal 
+%}
+
 % Stats
 % Median
 med_PSD = median(PSD_per_window);
@@ -26,7 +37,8 @@ figure; semilogx(frequency_Hz,med_PSD_dB,'k-'); hold on;
         xlabel('Frequency [Hz]');
         ylabel('PSD [dB re1uPa^2/Hz]');  
 
-        % Plots of PSD stats
+%{
+% Plots of PSD stats
 figure; plot(frequency_Hz,med_PSD_dB,'k-'); hold on;
         plot(frequency_Hz,pct25_PSD_dB,'b--');
         plot(frequency_Hz,pct75_PSD_dB,'b--');
@@ -34,6 +46,7 @@ figure; plot(frequency_Hz,med_PSD_dB,'k-'); hold on;
         title('Power Spectral Density');
         xlabel('Frequency [Hz]');
         ylabel('PSD [dB re1uPa^2/Hz]');  
+%}
 
 % Get decidecadal spectra
 interp_flag = true;

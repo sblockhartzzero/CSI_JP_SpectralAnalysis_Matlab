@@ -1,9 +1,7 @@
 %% Doc
 % This program concatenates the PSD mat files that belong to a specified
-% wind-speed/rain-rate bin. You must run it for each bin.
+% wind-speed/wind-dir/rain-rate bin. You must run it for each bin.
 
-% So, e.g. for project = 'CSI', edit the bin_number and run, generating
-% plots for the specified bin
 
 %% User input
 % Specify project CSI or OOI
@@ -76,7 +74,7 @@ for file_num = 1:num_files
 end
 
 % Verify tot_num_rows
-tot_num_rows
+%tot_num_rows
 
 % Calc stats on concatenated PSD
 cd(cwd);

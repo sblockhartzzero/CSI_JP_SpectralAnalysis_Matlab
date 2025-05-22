@@ -1,19 +1,21 @@
 
 function [PSD_per_window_out, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_rv, Fs, nfft, detrend_flag, preview_mode)
-% This script calculates and plots statistics on power spectral density (PSD)
-% for a specified file. It returns an array of PSD per window
-% Inputs
+
+%{ 
+INPUTS:
 %   y_rv:          time series, a row_vector of dim 1xN
 %   Fs:            sample rate [samples/second]
+%   nfft:          size of window, also number of samples in FFT
 %
-% Outputs
+% OUTPUTS:
 %   PSD_per_window_out: array of dim #good-windowsx#freqs containing abs(PSD) per window
 %                   assume 50% overlap on windows
 %                   frequency resolution is 1 Hz
 %   frequency_Hz:   frequency array of dim 1x#freqs
 %
 %   The following are of dim 1x#windows:
-%                   skewness_per_window, std_per_window, t_per_window
+%                   skewness_per_window, std_per_window
+%}
 
 
 % Derived values

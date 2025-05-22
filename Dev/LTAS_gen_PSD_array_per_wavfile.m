@@ -1,9 +1,30 @@
 function [PSD_per_window_cal,frequency_Hz,skewness_per_window, std_per_window] = LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext, nfft, calibration_struct, good_segment_array, preview_mode)
-% For the specified wav file, generate stats on PSD e.g. median, 25th, 75th percentile
-% curves as per IEC specification and save to a mat file. 
+
+%{
+INPUTS:
+-foldername:                Path to folder containing wav file
+-filename_sans_ext:         wav filename without the .wav extension
+-nfft:                      samples in FFT. This is also the size of the window, so set it to the next power of 2 greater than the sample rate
+                            i.e. so the window size is close to 1-second but also a factor of 2.
+-calibration_struct:        A struct with fields:
+                                -freq_dependent (boolean)
+                                -dBV_re_1uPa
+                                -V_pk
+-good_segment_array:        1x2 row vector with start and end sample number defining the "good" segment of the wav file
+-preview_mode:              boolean. If true, do not calculate PSD; just return std-dev and skewness per window
+
+OUTPUTS
+PSD_per_window_cal:         Array of power spectral density (in linear units i.e. microPascal^2/Hz), 
+                            for this wav file, i.e. after the calibration information is applied
+                            The array is of dimension #good-windows x #freqs
+                            (If a window fails QC, it is skipped, and does not count as a "good" window.)                           
+frequency_Hz:               The frequency values (in Hz) associated with PSD_per_window_cal 
+skewness_per_window:        skewness per window (regardless whether it is a "good" window)
+std_per_window:             std-dev per window (regardless whether it is a "good" window)
+%}
 
 % 05/29/2022
-% Added calibration_factor, so PSD is in uPa
+% Added calibration_factor, so PSD is in uPa^2/Hz
 
 % Debug flag for plots
 debug = false;

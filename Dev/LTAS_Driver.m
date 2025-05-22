@@ -1,16 +1,19 @@
-% Get stats on PSD per file e.g. median, 25th, 75th percentile
-% as per IEC specification
+% For each wav file in the specified folder, call LTAS_gen_PSD_array_per_wavfile to get PSD_per_window_cal,
+% the Power Spectral Density (PSD) for each 1-second window (as per IEC specification). 
+% The array PSD_per_window_cal has dimension #windows x #freqs.
+% The 1-second windows are 50%-overlapping. 
 
-% Prerequisite:
+% For each wav file in the specified folder, store the array PSD_per_window_cal in a mat file.
+
+% If this script is run in the preview_mode, PSD is not calculated.
+% Instead, LTAS_gen_PSD_array_per_wavfile returns only the std-dev and
+% skewaness per window.
+
+% Prerequisite (OOI):
 % -Download ooi wav files using python code in C:\Users\SteveLockhart\Documents\Projects\moran\rain\ooi\python
 % -Download associated cal info using  jupyter notebook in C:\Users\SteveLockhart\github\ooipy
 % -Move these input files to the wav_folder (below)
 
-% To do:
-% Need to adjust for comparison to variance (in time domain)? See IEC spec.
-% Out of memory if time series too long?
-% Get calibration_struct info from wav file automatically for project='CSI'
-% Check sample rate
 clear all;
 close all;
 
@@ -22,17 +25,17 @@ project = 'CSI';
 % Specify whether using preview mode (true or false)
 % Preview mode returns std-dev, skewness per window without performing the
 % PSD
-preview_mode = true;
+preview_mode = false;
 
 % Specify offset (in seconds) from beginning/end of wav file
 % This allows for entry/exit from water
 % i.e. start 30 seconds into the wav file and end 30 seconds before the end
 % of the wav file. These defaults can be overriden by the
 % *_good_segment.mat file
-default_offset_secs = 30;
+default_offset_secs = 1;
 
 % Switches for plotting
-plots_per_wav_file = false;
+plots_per_wav_file = true;
 plots_per_folder = true;
 
 % Specify project-specific info: input folders/files, output folders, nfft
@@ -42,12 +45,12 @@ switch project
         nfft = 2^19;
 
         % Specify wav folder
-        external_drive = true;
+        external_drive = false;
         if ~external_drive
             wav_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test\';
         else
-            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic background\2023_07_07\070723\';
-            wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic background\2024_03_14\03-14-2024_WEC_Deployment_ Background\';
+            wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_23\23April21\23April21\';
+            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic background\2024_03_14\03-14-2024_WEC_Deployment_ Background\';
         end
 
         % Specify search string for wav file in wav folder
@@ -108,7 +111,7 @@ switch project
 end
 
 
-%% Call
+%% Call LTAS_gen_PSD_array_per_wavfile
 % Get list of wav files for this wind/rain bin and location
 dir_list = dir(search_string);
 num_files = length(dir_list);
@@ -137,7 +140,6 @@ for file_num = 1:num_files
         end_sample = info.TotalSamples - floor(info.SampleRate*default_offset_secs);
         good_segment_array = [start_sample end_sample]; 
     end
-
 
     % Call LTAS_gen_PSD_per_wavfile(wav_folder, wav_filename_sans_ext) to generate (and save)
     % an array of PSDs (per window) with a frequency resolution of 1 Hz. It
@@ -174,6 +176,8 @@ for file_num = 1:num_files
     end
 end
 
+
+%% Plots
 if plots_per_folder
     % Std dev
     figure; semilogy(std_accum,'bo-');
