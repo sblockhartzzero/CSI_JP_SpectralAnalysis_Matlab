@@ -1,4 +1,4 @@
-function [PSD_per_window_cal,frequency_Hz,skewness_per_window, std_per_window] = LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext, nfft, calibration_struct, good_segment_array, preview_mode)
+function [PSD_per_window_cal,frequency_Hz,skewness_per_window, std_per_window] = LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext, nfft, calibration_struct, wav_start_datenum, preview_mode)
 
 %{
 INPUTS:
@@ -10,7 +10,7 @@ INPUTS:
                                 -freq_dependent (boolean)
                                 -dBV_re_1uPa
                                 -V_pk
--good_segment_array:        1x2 row vector with start and end sample number defining the "good" segment of the wav file
+-wav_start_datenum:         
 -preview_mode:              boolean. If true, do not calculate PSD; just return std-dev and skewness per window
 
 OUTPUTS
@@ -50,26 +50,10 @@ figure; plot(t, y, 'b-'); hold on;
         title('Input time series');
 %}
 
-% Subset
-if ~preview_mode
-    if ~isempty(good_segment_array)
-        start_pos =good_segment_array(1);
-        end_pos  = good_segment_array(2);
-        y_sub = y(start_pos:end_pos);
-        y_sub_t = y_sub.';
-        t_sub = t(start_pos:end_pos);
-    else
-        % good_segment_array is empty, so use the entire wav file
-        y_sub = y;
-        y_sub_t = y_sub.';
-        t_sub = t;
-    end
-else
-    % Preview mode, so use entire wav file
-    y_sub = y;
-    y_sub_t = y_sub.';
-    t_sub = t;
-end
+% Subset (discontinued)
+y_sub = y;
+y_sub_t = y_sub.';
+t_sub = t;
 
 %{
 % Plot time series
@@ -82,6 +66,7 @@ figure; plot(t,y,'b-'); hold on;
 %nfft = 2^19; 
 %nfft = Fs;
 nfft/Fs
+datestr(wav_start_datenum)
 %{
 figure; spectrogram(y_sub,nfft,nfft/2,nfft,Fs,'yaxis');
 colormap('parula');
@@ -91,7 +76,7 @@ caxis([-120 -80]);
 % Call LTAS
 detrend_flag = true;
 % Note PSD_per_window is #windows x #freqs
-[PSD_per_window, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_sub_t, Fs, nfft, detrend_flag, preview_mode);
+[PSD_per_window, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_sub_t, Fs, nfft, wav_start_datenum, detrend_flag, preview_mode);
 [num_windows, num_freqs] = size(PSD_per_window);
 
 if ~preview_mode

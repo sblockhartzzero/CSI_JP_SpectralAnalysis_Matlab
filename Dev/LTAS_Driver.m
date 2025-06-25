@@ -7,50 +7,48 @@
 
 % If this script is run in the preview_mode, PSD is not calculated.
 % Instead, LTAS_gen_PSD_array_per_wavfile returns only the std-dev and
-% skewaness per window.
+% skewness per window.
 
 % Prerequisite (OOI):
 % -Download ooi wav files using python code in C:\Users\SteveLockhart\Documents\Projects\moran\rain\ooi\python
 % -Download associated cal info using  jupyter notebook in C:\Users\SteveLockhart\github\ooipy
 % -Move these input files to the wav_folder (below)
 
+% To do:
+% -Push wav file start time down to called programs.
+% -Remove good segemnt from interface; instead, identify times in/out of water (for QC)
+
 clear all;
 close all;
 
 
 %% User input
-% Specify project e.g. 'CSI' or 'OOI'
-project = 'CSI';
+% Specify project e.g. 'JP' (Jennettes Pier) or 'OOI'
+project = 'JP';
 
 % Specify whether using preview mode (true or false)
 % Preview mode returns std-dev, skewness per window without performing the
 % PSD
 preview_mode = false;
 
-% Specify offset (in seconds) from beginning/end of wav file
-% This allows for entry/exit from water
-% i.e. start 30 seconds into the wav file and end 30 seconds before the end
-% of the wav file. These defaults can be overriden by the
-% *_good_segment.mat file
-default_offset_secs = 1;
-
 % Switches for plotting
-plots_per_wav_file = true;
+plots_per_wav_file = false;
 plots_per_folder = true;
 
 % Specify project-specific info: input folders/files, output folders, nfft
 switch project
-    case 'CSI'
+    case 'JP'
         % Specify window size for fft
-        nfft = 2^19;
+        %nfft = 2^19;
 
         % Specify wav folder
         external_drive = false;
         if ~external_drive
-            wav_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test\';
+            wav_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test_Manta\';
         else
-            wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_23\23April21\23April21\';
-            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic background\2024_03_14\03-14-2024_WEC_Deployment_ Background\';
+            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_23\23April21\23April21\';
+            wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\1June22\';
+            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\11Feb2021\';    
         end
 
         % Specify search string for wav file in wav folder
@@ -60,9 +58,16 @@ switch project
         % Specify PSD output folder
         PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\';
 
+        % Specify fullpath to matfile for tonal detections (for this
+        % hydrophone deployment) --assuming a wav folder per hydrophone
+        % deployment
+        skip_tonals = true;
+        tonal_detections_fullpath = '';
+
+
     case 'OOI'
         % Specify window size for fft
-        nfft = 2^16;
+        %nfft = 2^16;
         
         % Specify hydrophone e.g. so we can lookup cal per hydrophone
         % For OOI, specify whether shelf or offshore (for ooi)
@@ -71,16 +76,22 @@ switch project
         hydrophone = 'LJ01D';
         
         % Specify wind/rain bin
-        bin_wind_rain_str = 'wind10m_3mps_rainrte_3mmphr';
+        bin_wind_rain_str = 'wind10m_3mps_rainrte_0mmphr';
         
         % Specify wav folder
-        wav_folder = strcat('C:\Users\SteveLockhart\Documents\Projects\moran\ooi\binned_hydrophone_data\',bin_wind_rain_str,'\');
+        wav_folder = strcat('C:\Users\s44ba\Documents\Projects\from_JPA_moran\ooi\binned_hydrophone_data\',bin_wind_rain_str,'\');
 
         % Specify search string for wav file in wav folder
         search_string = strcat(wav_folder, hydrophone, '*.wav');
         
         % PSD output folder
-        PSD_matfile_folder = strcat('../PSD/', bin_wind_rain_str,'/', hydrophone,'/');
+        PSD_matfile_folder = strcat('C:\Users\s44ba\Documents\Projects\from_JPA_moran\ooi\PSD\', bin_wind_rain_str,'\', hydrophone,'\');
+
+        % Specify fullpath to matfile for tonal detections (for this
+        % hydrophone deployment) --assuming a wav folder per hydrophone
+        % deployment
+        skip_tonals = false;
+        tonal_detections_fullpath = '';
 
     otherwise
         error('Unknown project');
@@ -88,8 +99,8 @@ end
 
 % Specify project-specific info: calibration
 switch project
-    case 'CSI'
-        % For CSI:
+    case 'JP'
+        % For JP:
         % From audio info: 
         % Comment: '3.000000 V pk, -171 dBV re 1uPa (sensitivity)
         calibration_struct.freq_dependent = false;
@@ -97,7 +108,7 @@ switch project
         calibration_struct.V_pk = 3.0;
     case 'OOI'
         % Get frequency dependent cal info from a mat file
-        cal_info_folder = 'C:\Users\SteveLockhart\Documents\Projects\moran\rain\ooi\cal_info\';
+        cal_info_folder = 'C:\Users\s44ba\Documents\Projects\from_JPA_moran\ooi\cal_info\';
         cal_info_file = strcat(cal_info_folder, hydrophone,'_cal_info.mat');
         cal_info = load(cal_info_file);
         % Stuff
@@ -127,26 +138,32 @@ for file_num = 1:num_files
     wav_filename = dir_list(file_num).name;
     wav_filename_sans_ext = wav_filename(1:end-4);
     wavfile_fullpath = strcat(wav_folder, wav_filename);
+
+    % Display info
     info = audioinfo(wavfile_fullpath)
 
-    % Prep for call
-    % Get good_segment if available
-    good_segment_mat_fullpath = strcat(PSD_matfile_folder,wav_filename_sans_ext,'_good_segment.mat');
-    if isfile(good_segment_mat_fullpath)
-        good_segment = load(good_segment_mat_fullpath);
-        good_segment_array = [good_segment.start_sample good_segment.end_sample];
-    else
-        start_sample = floor(info.SampleRate*default_offset_secs);
-        end_sample = info.TotalSamples - floor(info.SampleRate*default_offset_secs);
-        good_segment_array = [start_sample end_sample]; 
+    % Get start datenum for this wave file
+    % Remember (for datenum arithmetic) datenum is in units of days (since some reference)
+    switch project
+        case 'JP'
+            wav_start_datenum = JP_wav_filename_to_datenum(wav_filename);
+        case 'OOI'
+            wav_start_datenum = []; % Currently not supported
+        otherwise
+            error('Unknown project');
     end
+
+    % Prep for call
+    % Assign nfft (for ~1 sec analysis window)
+    next_power_of_2 = nextpow2(info.SampleRate);
+    nfft = 2^next_power_of_2;
 
     % Call LTAS_gen_PSD_per_wavfile(wav_folder, wav_filename_sans_ext) to generate (and save)
     % an array of PSDs (per window) with a frequency resolution of 1 Hz. It
     % also generates plots of PSD stats (median, 25%, 75%) as well as plots of decidecadal
     % spectral stats
     %LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct)
-    [PSD_per_window_cal,frequency_Hz,skewness_per_window,std_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct, good_segment_array, preview_mode);
+    [PSD_per_window_cal,frequency_Hz,skewness_per_window,std_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct, wav_start_datenum, preview_mode);
     skewness_accum = [skewness_accum skewness_per_window];
     std_accum = [std_accum std_per_window];
     

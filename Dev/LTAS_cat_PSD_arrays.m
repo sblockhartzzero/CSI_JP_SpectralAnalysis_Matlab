@@ -5,7 +5,7 @@
 
 %% User input
 % Specify project CSI or OOI
-project = 'CSI';
+project = 'OOI';
 
 % Specify project-specific user input
 switch project
@@ -31,10 +31,10 @@ switch project
         hydrophone = 'LJ01D';
 
         % Specify wind/rain bin
-        bin_wind_rain_str = 'wind10m_3mps_rainrte_3mmphr';
+        bin_wind_rain_str = 'wind10m_3mps_rainrte_0mmphr';
 
         % Specify folder for mat files
-        PSD_matfile_folder = strcat('../PSD/', bin_wind_rain_str,'/', hydrophone,'/');
+        PSD_matfile_folder = strcat('C:\Users\s44ba\Documents\Projects\from_JPA_moran\ooi\PSD\', bin_wind_rain_str,'\', hydrophone,'\');
 
         % Search string for *_PSD.mat files
         search_string = strcat(PSD_matfile_folder,'*PSD.mat');

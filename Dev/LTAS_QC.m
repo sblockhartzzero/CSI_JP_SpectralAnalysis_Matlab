@@ -1,6 +1,10 @@
-function [LTAS_QC_ind, reason] = LTAS_QC(y_segment, Fs)
+function [LTAS_QC_ind, reason] = LTAS_QC(y_segment, Fs, segment_start_datenum)
 
-% Default is OK
+% Enable plotting of each QC issue
+plot_flag = false;
+
+% The default is that the segment is OK; i.e. no QC issue.
+% Set output vars to defaults.
 LTAS_QC_ind = true;
 reason = '';
 
@@ -17,10 +21,15 @@ num_abrupt_changes = sum(TF);
 if num_abrupt_changes > 0
     LTAS_QC_ind = false;
     reason = 'Discontinuity';
-    figure; plot(y_segment,'*'); hold on
+    if plot_flag
+        figure; plot(y_segment,'*'); hold on
             stairs(S1);
-            legend('Data','Segment Mean','Location','NW')
+            legend('Data','Segment Mean','Location','NW');
+    end
 end
+
+% Check to see if there are tonals in this window
+datestr(segment_start_datenum, 'mmmm dd, yyyy HH:MM:SS.FFF')
 
 % Temporary
 %LTAS_QC_ind = true;
