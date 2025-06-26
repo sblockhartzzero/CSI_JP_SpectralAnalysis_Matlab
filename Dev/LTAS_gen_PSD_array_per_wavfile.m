@@ -1,4 +1,4 @@
-function [PSD_per_window_cal,frequency_Hz,skewness_per_window, std_per_window] = LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext, nfft, calibration_struct, wav_start_datenum, preview_mode)
+function [PSD_per_window_cal,frequency_Hz,skewness_per_window, std_per_window] = LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext, nfft, calibration_struct, wav_start_datenum, preview_mode, QC_CFG)
 
 %{
 INPUTS:
@@ -76,7 +76,7 @@ caxis([-120 -80]);
 % Call LTAS
 detrend_flag = true;
 % Note PSD_per_window is #windows x #freqs
-[PSD_per_window, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_sub_t, Fs, nfft, wav_start_datenum, detrend_flag, preview_mode);
+[PSD_per_window, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_sub_t, Fs, nfft, wav_start_datenum, detrend_flag, preview_mode, QC_CFG);
 [num_windows, num_freqs] = size(PSD_per_window);
 
 if ~preview_mode

@@ -21,6 +21,22 @@
 clear all;
 close all;
 
+%% Doc
+%{
+QC_CFG.tonals.event_Whistle_AllSets
+
+ans = 
+
+  struct with fields:
+
+          start_Datenum: [7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 … ] (1×129 double)
+           stop_Datenum: [7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 … ] (1×129 double)
+               f_Hz_Min: [2125 2125 2125 2125 2125 2125 13375 12500 16125 2125 2250 2125 3625 2125 15125 2125 2125 7375 … ] (1×129 double)
+               f_Hz_Max: [2500 2875 2750 2375 2500 2875 14125 12750 17250 2875 5125 3375 4750 3000 15250 3000 2750 … ] (1×129 double)
+            f_Hz_Median: [2250 2250 2250 2250 2250 2250 13375 12625 17125 2250 3875 2500 3750 2625 15125 2500 2500 9750 … ] (1×129 double)
+    snr_Power_dB_Median: [18.5511 18.5275 16.0827 16.8343 16.7805 18.5833 15.7159 15.5863 15.7918 17.0457 17.8183 … ] (1×129 double)
+%}
+
 
 %% User input
 % Specify project e.g. 'JP' (Jennettes Pier) or 'OOI'
@@ -61,9 +77,9 @@ switch project
         % Specify fullpath to matfile for tonal detections (for this
         % hydrophone deployment) --assuming a wav folder per hydrophone
         % deployment
-        skip_tonals = true;
-        tonal_detections_fullpath = '';
-
+        tonal_detections_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Detections\Tonals\Mat\whistle_Set1_To_Set1.mat';
+        QC_CFG.skip_tonals = true;
+        QC_CFG.tonals = load(tonal_detections_fullpath);
 
     case 'OOI'
         % Specify window size for fft
@@ -90,8 +106,9 @@ switch project
         % Specify fullpath to matfile for tonal detections (for this
         % hydrophone deployment) --assuming a wav folder per hydrophone
         % deployment
-        skip_tonals = false;
         tonal_detections_fullpath = '';
+        QC_CFG.skip_tonals = false;
+        QC_CFG.tonals = [];
 
     otherwise
         error('Unknown project');
@@ -163,7 +180,7 @@ for file_num = 1:num_files
     % also generates plots of PSD stats (median, 25%, 75%) as well as plots of decidecadal
     % spectral stats
     %LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct)
-    [PSD_per_window_cal,frequency_Hz,skewness_per_window,std_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct, wav_start_datenum, preview_mode);
+    [PSD_per_window_cal,frequency_Hz,skewness_per_window,std_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct, wav_start_datenum, preview_mode, QC_CFG);
     skewness_accum = [skewness_accum skewness_per_window];
     std_accum = [std_accum std_per_window];
     
