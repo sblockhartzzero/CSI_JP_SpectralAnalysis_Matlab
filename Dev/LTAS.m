@@ -1,5 +1,5 @@
 
-function [PSD_per_window_out, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_rv, Fs, nfft, wav_start_datenum, detrend_flag, preview_mode, QC_CFG)
+function [PSD_per_window_out, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_rv, Fs, nfft, wav_filename_sans_ext, detrend_flag, preview_mode, QC_CFG)
 
 %{ 
 INPUTS:
@@ -46,9 +46,8 @@ while (end_sample_in < N)
     y_segment = y_rv(start_sample_in:end_sample_in);
     % Calculate datenum for start of segment
     start_secs_in = (start_sample_in-1)/Fs;
-    segment_start_datenum = wav_start_datenum + (start_secs_in/secs_per_day);   % in units of days (since some reference) 
     % QC of this segment
-    [LTAS_QC_ind, reason] = LTAS_QC(y_segment, Fs, segment_start_datenum, QC_CFG);
+    [LTAS_QC_ind, reason] = LTAS_QC(y_segment, Fs, start_secs_in, wav_filename_sans_ext, QC_CFG);
     % Skewness of this segment
     skewness_val = skewness(y_segment);
     if LTAS_QC_ind

@@ -1,9 +1,9 @@
-function [PSD_per_window_cal,frequency_Hz,skewness_per_window, std_per_window] = LTAS_gen_PSD_array_per_wavfile(foldername, filename_sans_ext, nfft, calibration_struct, wav_start_datenum, preview_mode, QC_CFG)
+function [PSD_per_window_cal,frequency_Hz,skewness_per_window, std_per_window] = LTAS_gen_PSD_array_per_wavfile(foldername, wav_filename_sans_ext, nfft, calibration_struct, wav_start_datenum, preview_mode, QC_CFG)
 
 %{
 INPUTS:
 -foldername:                Path to folder containing wav file
--filename_sans_ext:         wav filename without the .wav extension
+-wav_filename_sans_ext:     wav filename without the .wav extension
 -nfft:                      samples in FFT. This is also the size of the window, so set it to the next power of 2 greater than the sample rate
                             i.e. so the window size is close to 1-second but also a factor of 2.
 -calibration_struct:        A struct with fields:
@@ -30,7 +30,7 @@ std_per_window:             std-dev per window (regardless whether it is a "good
 debug = false;
 
 % Read wav file
-wavfile_fullpath = strcat(foldername, filename_sans_ext, '.wav');
+wavfile_fullpath = strcat(foldername, wav_filename_sans_ext, '.wav');
 [y,Fs] = audioread(wavfile_fullpath);
 num_samples = length(y);
 t = (1:num_samples)/Fs;
@@ -76,7 +76,7 @@ caxis([-120 -80]);
 % Call LTAS
 detrend_flag = true;
 % Note PSD_per_window is #windows x #freqs
-[PSD_per_window, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_sub_t, Fs, nfft, wav_start_datenum, detrend_flag, preview_mode, QC_CFG);
+[PSD_per_window, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_sub_t, Fs, nfft, wav_filename_sans_ext, detrend_flag, preview_mode, QC_CFG);
 [num_windows, num_freqs] = size(PSD_per_window);
 
 if ~preview_mode

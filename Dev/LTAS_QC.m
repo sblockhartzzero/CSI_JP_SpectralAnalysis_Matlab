@@ -1,20 +1,6 @@
-function [LTAS_QC_ind, reason] = LTAS_QC(y_segment, Fs, segment_start_datenum, QC_CFG)
+function [LTAS_QC_ind, reason] = LTAS_QC(y_segment, Fs, start_secs_in, wav_filename_sans_ext, QC_CFG)
 
 %% Doc
-%{
-QC_CFG.tonals.event_Whistle_AllSets
-
-ans = 
-
-  struct with fields:
-
-          start_Datenum: [7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 … ] (1×129 double)
-           stop_Datenum: [7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 … ] (1×129 double)
-               f_Hz_Min: [2125 2125 2125 2125 2125 2125 13375 12500 16125 2125 2250 2125 3625 2125 15125 2125 2125 7375 … ] (1×129 double)
-               f_Hz_Max: [2500 2875 2750 2375 2500 2875 14125 12750 17250 2875 5125 3375 4750 3000 15250 3000 2750 … ] (1×129 double)
-            f_Hz_Median: [2250 2250 2250 2250 2250 2250 13375 12625 17125 2250 3875 2500 3750 2625 15125 2500 2500 9750 … ] (1×129 double)
-    snr_Power_dB_Median: [18.5511 18.5275 16.0827 16.8343 16.7805 18.5833 15.7159 15.5863 15.7918 17.0457 17.8183 … ] (1×129 double)
-%}
 
 
 %% Processing
@@ -50,12 +36,12 @@ if num_abrupt_changes > 0
 end
 
 % Check to see if there are tonals in this window
-%datestr(segment_start_datenum, 'mmmm dd, yyyy HH:MM:SS.FFF')
 if QC_CFG.skip_tonals
     % See if there is a tonal that either starts or ends in this window.
     % First get end_datenum for this window. (We already have
     % segment_start_datenum.)
     segment_duration_secs = length(y_segment)/Fs;                                           % samples/(samples/sec) = sec
+    %{
     segment_end_datenum = segment_start_datenum + (segment_duration_secs/secs_per_day);     % datenum has units of days since a reference
     % Question 1: Are there any tonals that start in this window (i.e. in
     % this segment)?
@@ -64,6 +50,7 @@ if QC_CFG.skip_tonals
     if (sum(q1)>0)
         LTAS_QC_ind = false;
         reason = 'Tonal(s)';
+        fprintf("%s tonals start in this window\n",num2str(sum(q1)));
     end
     % 
     % Question 2: Are there any tonals that end in this window (i.e. in
@@ -73,6 +60,27 @@ if QC_CFG.skip_tonals
     if (sum(q2)>0)
         LTAS_QC_ind = false;
         reason = 'Tonal(s)';
+        fprintf("%s tonals end in this window\n",num2str(sum(q2)));
+    end
+    %}
+    %
+    % New method, using raven selections
+    % Derive end_secs_in
+    end_secs_in = start_secs_in + segment_duration_secs;
+    % Build selection_fullpath  
+    selection_fullpath = strcat(QC_CFG.selection_folder_tonals,'selections_WHISTLE_',wav_filename_sans_ext,'.selections.txt');
+    % Call selections_in_window to get a count of the number of selections
+    % that either start (q1) or end (q2) in this window
+    [q1,q2] = selections_in_window(selection_fullpath, start_secs_in, end_secs_in);
+    if q1>0
+        LTAS_QC_ind = false;
+        reason = 'Tonal(s)';
+        fprintf("%s tonals start in this window\n",num2str(q1));
+    end
+    if q2>0
+        LTAS_QC_ind = false;
+        reason = 'Tonal(s)';
+        fprintf("%s tonals end in this window\n",num2str(q2));
     end
 end
 

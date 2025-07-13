@@ -5,23 +5,35 @@
 
 %% User input
 % Specify project CSI or OOI
-project = 'OOI';
+project = 'CSI';
 
 % Specify project-specific user input
 switch project
     case 'CSI'
         % Specify wind speed range in m/s
-        wind_speed_range = [2.0 4.0];
+        %wind_speed_range = [0.0 2.0];  % for HEROWEC
+        wind_speed_range = [2.0 4.0];   % for 6/23/25, Set1and2, 
 
         % Specify wind dir range in degrees clockwaise from North (that
         % wind is coming FROM)
-        wind_dir_range = [180 225];
+        wind_dir_range = [0 90];        % Shoreward (6/23/25, Sets1and2)
+        %wind_dir_range = [180 225];    % Seaward (Sets1and2)
+        %wind_dir_range = [0 360];       % HEROWEC
 
         % Specify folder for PSD mat files
-        PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\';
+        %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\';
+        %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\Set1_and_2_saved_no_skip\';
+        PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\Set1_and_2_saved_skip_tonals\';
+        %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\HEROWEC_bkgnd_no_skip\';
+        %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\HEROWEC_impact_no_skip\';
+        %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\2025_06_23_bkgnd_no_skip\';
 
         % Specify fullpath to wind_per_wav.csv
-        wind_per_wav_fullpath = "C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\wind_per_wav.csv";
+        %wind_per_wav_fullpath = "C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\wind_per_wav.csv";
+        wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\Set1_and_2_saved\wind_per_wav.csv';
+        %wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\HEROWEC_renamed_bkgnd\wind_per_wav.csv';
+        %wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\HEROWEC_renamed_impact\wind_per_wav.csv';
+        %wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\2025_06_23_bkgnd\wind_per_wav.csv';
 
     case 'OOI'
         % Specify hydrophone e.g. so we can lookup cal per hydrophone

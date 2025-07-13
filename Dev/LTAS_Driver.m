@@ -22,20 +22,6 @@ clear all;
 close all;
 
 %% Doc
-%{
-QC_CFG.tonals.event_Whistle_AllSets
-
-ans = 
-
-  struct with fields:
-
-          start_Datenum: [7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 … ] (1×129 double)
-           stop_Datenum: [7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 7.3827e+05 … ] (1×129 double)
-               f_Hz_Min: [2125 2125 2125 2125 2125 2125 13375 12500 16125 2125 2250 2125 3625 2125 15125 2125 2125 7375 … ] (1×129 double)
-               f_Hz_Max: [2500 2875 2750 2375 2500 2875 14125 12750 17250 2875 5125 3375 4750 3000 15250 3000 2750 … ] (1×129 double)
-            f_Hz_Median: [2250 2250 2250 2250 2250 2250 13375 12625 17125 2250 3875 2500 3750 2625 15125 2500 2500 9750 … ] (1×129 double)
-    snr_Power_dB_Median: [18.5511 18.5275 16.0827 16.8343 16.7805 18.5833 15.7159 15.5863 15.7918 17.0457 17.8183 … ] (1×129 double)
-%}
 
 
 %% User input
@@ -58,13 +44,17 @@ switch project
         %nfft = 2^19;
 
         % Specify wav folder
-        external_drive = false;
+        external_drive = true;
         if ~external_drive
             wav_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test_Manta\';
         else
+            wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_21\21April21\21April21\';
             %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_23\23April21\23April21\';
-            wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\1June22\';
-            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\11Feb2021\';    
+            %
+            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2024_03_14_HEROWEC_Deployment_Renamed\background\';  
+            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2024_03_14_HEROWEC_Deployment_Renamed\impact\';
+            %
+            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic background\2025_06-23\icListen_HF1984\';
         end
 
         % Specify search string for wav file in wav folder
@@ -77,9 +67,8 @@ switch project
         % Specify fullpath to matfile for tonal detections (for this
         % hydrophone deployment) --assuming a wav folder per hydrophone
         % deployment
-        tonal_detections_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Detections\Tonals\Mat\whistle_Set1_To_Set1.mat';
         QC_CFG.skip_tonals = true;
-        QC_CFG.tonals = load(tonal_detections_fullpath);
+        QC_CFG.selection_folder_tonals = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Detections\Tonals\Selections\';
 
     case 'OOI'
         % Specify window size for fft
@@ -106,9 +95,8 @@ switch project
         % Specify fullpath to matfile for tonal detections (for this
         % hydrophone deployment) --assuming a wav folder per hydrophone
         % deployment
-        tonal_detections_fullpath = '';
         QC_CFG.skip_tonals = false;
-        QC_CFG.tonals = [];
+        QC_CFG.selection_folder_tonals = '';
 
     otherwise
         error('Unknown project');
