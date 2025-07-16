@@ -71,7 +71,7 @@ if QC_CFG.skip_tonals
     selection_fullpath = strcat(QC_CFG.selection_folder_tonals,'selections_WHISTLE_',wav_filename_sans_ext,'.selections.txt');
     % Call selections_in_window to get a count of the number of selections
     % that either start (q1) or end (q2) in this window
-    [q1,q2] = selections_in_window(selection_fullpath, start_secs_in, end_secs_in);
+    [q1,q2,q3] = selections_in_window(selection_fullpath, start_secs_in, end_secs_in);
     if q1>0
         LTAS_QC_ind = false;
         reason = 'Tonal(s)';
@@ -81,6 +81,11 @@ if QC_CFG.skip_tonals
         LTAS_QC_ind = false;
         reason = 'Tonal(s)';
         fprintf("%s tonals end in this window\n",num2str(q2));
+    end
+    if q3>0
+        LTAS_QC_ind = false;
+        reason = 'Tonal(s)';
+        fprintf("%s tonals span this window\n",num2str(q2));
     end
 end
 

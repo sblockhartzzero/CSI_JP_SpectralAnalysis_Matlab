@@ -2,6 +2,8 @@
 % This program concatenates the PSD mat files that belong to a specified
 % wind-speed/wind-dir/rain-rate bin. You must run it for each bin.
 
+% Change the freq_idx below for the plot of pdf of PSD at one frequency.
+
 
 %% User input
 % Specify project CSI or OOI
@@ -11,29 +13,27 @@ project = 'CSI';
 switch project
     case 'CSI'
         % Specify wind speed range in m/s
-        %wind_speed_range = [0.0 2.0];  % for HEROWEC
-        wind_speed_range = [2.0 4.0];   % for 6/23/25, Set1and2, 
+        %wind_speed_range = [2.0 3.0];  % for HEROWEC UTC background fixed
+        wind_speed_range = [3.0 4.0];   % for 6/23/25
+        %wind_speed_range = [4.0 5.0];  % for Set1and2 
 
         % Specify wind dir range in degrees clockwaise from North (that
         % wind is coming FROM)
-        wind_dir_range = [0 90];        % Shoreward (6/23/25, Sets1and2)
-        %wind_dir_range = [180 225];    % Seaward (Sets1and2)
-        %wind_dir_range = [0 360];       % HEROWEC
+        wind_dir_range = [0 90];       % Shoreward (6/23/25, Sets1and2)
+        %wind_dir_range = [180 225];     % Seaward (Sets1and2), HEROWEC UTC background fixed
 
         % Specify folder for PSD mat files
         %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\';
         %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\Set1_and_2_saved_no_skip\';
-        PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\Set1_and_2_saved_skip_tonals\';
-        %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\HEROWEC_bkgnd_no_skip\';
-        %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\HEROWEC_impact_no_skip\';
-        %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\2025_06_23_bkgnd_no_skip\';
+        %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\Set1_and_2_saved_skip_tonals\';
+        %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\HEROWEC_UTC_bkgnd_no_skip\';
+        PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\2025_06_23_bkgnd_no_skip\';
 
         % Specify fullpath to wind_per_wav.csv
         %wind_per_wav_fullpath = "C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\wind_per_wav.csv";
-        wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\Set1_and_2_saved\wind_per_wav.csv';
-        %wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\HEROWEC_renamed_bkgnd\wind_per_wav.csv';
-        %wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\HEROWEC_renamed_impact\wind_per_wav.csv';
-        %wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\2025_06_23_bkgnd\wind_per_wav.csv';
+        %wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\Set1_and_2_fixed\wind_per_wav.csv';
+        %wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\HEROWEC_renamed_UTC_bkgnd_fixed\wind_per_wav.csv';
+        wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\2025_06_23_bkgnd\wind_per_wav.csv';
 
     case 'OOI'
         % Specify hydrophone e.g. so we can lookup cal per hydrophone
@@ -92,6 +92,16 @@ end
 cd(cwd);
 frequency_Hz = x.frequency_Hz;    % Assume all are same
 LTAS_gen_PSD_stats(PSD_per_window_cal_all,frequency_Hz)
+
+% Plot pdf of PSD at 1 frequency
+freq_idx = 104; % For 512k samples/sec, 104 for 4k
+% Slice PSD array at this freq
+PSD_per_window_cal_all_sliced_dB = 10*log10(PSD_per_window_cal_all(:,freq_idx));
+figure; histogram(PSD_per_window_cal_all_sliced_dB,'Normalization','pdf');
+hist_obj = histogram(PSD_per_window_cal_all_sliced_dB,'Normalization','pdf');
+bin_centers = hist_obj.BinEdges(1:end-1) + 0.5*diff(hist_obj.BinEdges);
+figure; plot(bin_centers,hist_obj.Values,'bo-');
+
 
 
 

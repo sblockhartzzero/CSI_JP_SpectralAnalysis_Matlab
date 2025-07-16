@@ -44,14 +44,14 @@ switch project
         %nfft = 2^19;
 
         % Specify wav folder
-        external_drive = true;
+        external_drive = false;
         if ~external_drive
             wav_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test_Manta\';
         else
-            wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_21\21April21\21April21\';
+            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_21\21April21\21April21\';
             %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_23\23April21\23April21\';
             %
-            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2024_03_14_HEROWEC_Deployment_Renamed\background\';  
+            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2024_03_14_HEROWEC_Deployment_Renamed_UTC\background\';  
             %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2024_03_14_HEROWEC_Deployment_Renamed\impact\';
             %
             %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic background\2025_06-23\icListen_HF1984\';
