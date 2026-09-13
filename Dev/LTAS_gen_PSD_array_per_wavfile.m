@@ -1,4 +1,4 @@
-function [PSD_per_window_cal,frequency_Hz,skewness_per_window, std_per_window] = LTAS_gen_PSD_array_per_wavfile(foldername, wav_filename_sans_ext, nfft, calibration_struct, wav_start_datenum, preview_mode, QC_CFG)
+function [PSD_per_window_cal,frequency_Hz,skewness_per_window, std_per_window, t_secs_per_window] = LTAS_gen_PSD_array_per_wavfile(foldername, wav_filename_sans_ext, nfft, calibration_struct, wav_start_datenum, preview_mode, QC_CFG)
 
 %{
 INPUTS:
@@ -44,40 +44,23 @@ sum(qc_idx)
 if debug
     figure; histogram(y_diff, 20); title('y diff');
 end
-%{
-figure; plot(t, y, 'b-'); hold on;
-        plot(t(qc_idx), y(qc_idx), 'ro');
+
+figure; plot(t, y, 'b-'); %hold on;
+        %plot(t(qc_idx), y(qc_idx), 'ro');
         title('Input time series');
-%}
+
 
 % Subset (discontinued)
 y_sub = y;
 y_sub_t = y_sub.';
-t_sub = t;
 
-%{
-% Plot time series
-figure; plot(t,y,'b-'); hold on;
-        plot(t_sub, y_sub_t,'ro-');
-        title('time series')
-%}
-
-% Spectrogram
-%nfft = 2^19; 
-%nfft = Fs;
-nfft/Fs
 datestr(wav_start_datenum)
-%{
-figure; spectrogram(y_sub,nfft,nfft/2,nfft,Fs,'yaxis');
-colormap('parula');
-caxis([-120 -80]);
-%}
 
 % Call LTAS
 detrend_flag = true;
 % Note PSD_per_window is #windows x #freqs
-[PSD_per_window, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_sub_t, Fs, nfft, wav_filename_sans_ext, detrend_flag, preview_mode, QC_CFG);
-[num_windows, num_freqs] = size(PSD_per_window);
+[PSD_per_window, frequency_Hz, skewness_per_window, std_per_window, t_secs_per_window] = LTAS(y_sub_t, Fs, nfft, wav_filename_sans_ext, detrend_flag, preview_mode, QC_CFG);
+[num_good_windows, num_freqs] = size(PSD_per_window);
 
 if ~preview_mode
     % Look at var before cal factor applied
@@ -94,8 +77,8 @@ if ~preview_mode
         cal_factor = 10.^(calibration_struct.cal_adj_dB/10);
         % Vq = interp1(X,V,Xq,METHOD)
         cal_factor_i = interp1(calibration_struct.f_cal, cal_factor, frequency_Hz');
-        PSD_per_window_cal = zeros(num_windows,num_freqs);
-        for window_num = 1:num_windows
+        PSD_per_window_cal = zeros(num_good_windows,num_freqs);
+        for window_num = 1:num_good_windows
             PSD_per_window_cal(window_num,:) = PSD_per_window(window_num,:).*cal_factor_i;
         end
     else
@@ -110,7 +93,3 @@ else
     PSD_per_window_cal = [];
 end
 
-% Var
-%{
-fprintf("Var of subset=%s\n", num2str(var(y_sub_t)));
-%}

@@ -1,5 +1,5 @@
 
-function [PSD_per_window_out, frequency_Hz, skewness_per_window, std_per_window] = LTAS(y_rv, Fs, nfft, wav_filename_sans_ext, detrend_flag, preview_mode, QC_CFG)
+function [PSD_per_window_out, frequency_Hz, skewness_per_window, std_per_window, t_secs_per_window] = LTAS(y_rv, Fs, nfft, wav_filename_sans_ext, detrend_flag, preview_mode, QC_CFG)
 
 %{ 
 INPUTS:
@@ -26,7 +26,7 @@ num_windows = floor( (N/(nfft/2)) );
 num_freqs = floor(1 + nfft/2);
 
 % time base
-t = (1:N)/Fs;
+t = (0:N-1)/Fs;
 
 % PSD
 % Init before looping
@@ -40,26 +40,26 @@ window_num_out = window_num_in;     % count of good windows
 PSD_per_window = zeros(num_windows, num_freqs);
 skewness_per_window = zeros(1,num_windows);
 std_per_window = zeros(1,num_windows);
+t_secs_per_window = zeros(1,num_windows);
 % Loop over windows
 while (end_sample_in < N)
     % Segment time series
     y_segment = y_rv(start_sample_in:end_sample_in);
     % Calculate datenum for start of segment
-    start_secs_in = (start_sample_in-1)/Fs;
-    % QC of this segment
+    start_secs_in = t(start_sample_in);
+    % QC of this segment (even before detrending)
     [LTAS_QC_ind, reason] = LTAS_QC(y_segment, Fs, start_secs_in, wav_filename_sans_ext, QC_CFG);
-    % Skewness of this segment
-    skewness_val = skewness(y_segment);
+    % Detrend per window?   
+    if detrend_flag
+        y_detrended = detrend(y_segment);
+    else
+        y_detrended = y_segment;
+    end
     if LTAS_QC_ind
         % This segment is OK, so proceed with this good window
         if ~preview_mode
             % Not preview mode, so calc PSD for this good window
-            % Detrend per window?   
-            if detrend_flag
-                y_detrended = detrend(y_segment);
-            else
-                y_detrended = y_segment;
-            end
+            
             % PSD for this window
             [p_welch,f_welch] = pwelch(y_detrended,hann(nfft),[],nfft,Fs,'psd');
             % Stuff PSD for this window into an array, first making sure it is a
@@ -81,10 +81,13 @@ while (end_sample_in < N)
             fprintf("%s %d %s %s\n", "WARN: Segment",window_num_in, "failed QC due to:",reason);
             %figure; plot(y_segment);
         end
-    end  
+    end 
     % Save skewness, std-dev of this window
+    skewness_val = skewness(y_detrended);
     skewness_per_window(window_num_in) = skewness_val;
-    std_per_window(window_num_in) = std(y_segment);
+    std_per_window(window_num_in) = std(y_detrended);
+    mid_samp_num = floor(mean(start_sample_in,end_sample_in));
+    t_secs_per_window(window_num_in) = t(mid_samp_num);
     % Regardless of QC for this segment advance to next (input) window
     start_sample_in = start_sample_in + floor(nfft/2); 
     end_sample_in = start_sample_in + nfft - 1;

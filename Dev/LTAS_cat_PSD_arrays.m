@@ -27,13 +27,15 @@ switch project
         %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\Set1_and_2_saved_no_skip\';
         %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\Set1_and_2_saved_skip_tonals\';
         %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\HEROWEC_UTC_bkgnd_no_skip\';
-        PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\2025_06_23_bkgnd_no_skip\';
+        %PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\2025_06_23_bkgnd_no_skip\';
+        PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\2025_06_23_bkgnd_skip_manuals\';
 
         % Specify fullpath to wind_per_wav.csv
         %wind_per_wav_fullpath = "C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\wind_per_wav.csv";
         %wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\Set1_and_2_fixed\wind_per_wav.csv';
         %wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\HEROWEC_renamed_UTC_bkgnd_fixed\wind_per_wav.csv';
-        wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\2025_06_23_bkgnd\wind_per_wav.csv';
+        %wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\2025_06_23_bkgnd\wind_per_wav.csv';
+        wind_per_wav_fullpath = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Outputs\2025_06_23_bkgnd_skip_manuals\wind_per_wav.csv';
 
     case 'OOI'
         % Specify hydrophone e.g. so we can lookup cal per hydrophone

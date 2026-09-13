@@ -34,7 +34,7 @@ project = 'JP';
 preview_mode = false;
 
 % Switches for plotting
-plots_per_wav_file = false;
+plots_per_wav_file = true;
 plots_per_folder = true;
 
 % Specify project-specific info: input folders/files, output folders, nfft
@@ -43,10 +43,10 @@ switch project
         % Specify window size for fft
         %nfft = 2^19;
 
-        % Specify wav folder
+        % Specify wav folder (with filesep at end)
         external_drive = false;
         if ~external_drive
-            wav_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test_Manta\';
+            wav_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Data\Test\';
         else
             %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_21\21April21\21April21\';
             %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2021_04_23\23April21\23April21\';
@@ -55,20 +55,26 @@ switch project
             %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic impact\2024_03_14_HEROWEC_Deployment_Renamed\impact\';
             %
             %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic background\2025_06-23\icListen_HF1984\';
+            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic background\2025_06-23\manual\';
+            %
+            %wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic background\2025_08_13\icListen_HF_1984_13August2025\';
+            %
+            wav_folder = 'F:\JeannetesPier\data\field measurements + environmental conditions\acoustic background\2025_08_06\icListen_HF_1984_06August2025\';
         end
 
         % Specify search string for wav file in wav folder
         %search_string = strcat(wav_folder, 'SCW1984_20230707*.wav');
-        search_string = strcat(wav_folder, '*.wav');
+        search_string = strcat(wav_folder, '*1345*.wav');
 
-        % Specify PSD output folder
+        % Specify PSD output folder (with filesep at end)
         PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Matfiles\';
 
         % Specify fullpath to matfile for tonal detections (for this
         % hydrophone deployment) --assuming a wav folder per hydrophone
         % deployment
-        QC_CFG.skip_tonals = true;
-        QC_CFG.selection_folder_tonals = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Detections\Tonals\Selections\';
+        QC_CFG.skip_tonals = false;
+        %QC_CFG.selection_folder_tonals = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Detections\Tonals\Selections\';
+        QC_CFG.selection_folder_tonals = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Detections\Manual\Selections\';
 
     case 'OOI'
         % Specify window size for fft
@@ -168,7 +174,7 @@ for file_num = 1:num_files
     % also generates plots of PSD stats (median, 25%, 75%) as well as plots of decidecadal
     % spectral stats
     %LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct)
-    [PSD_per_window_cal,frequency_Hz,skewness_per_window,std_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct, wav_start_datenum, preview_mode, QC_CFG);
+    [PSD_per_window_cal,frequency_Hz,skewness_per_window,std_per_window,t_secs_per_window] = LTAS_gen_PSD_array_per_wavfile(wav_folder, wav_filename_sans_ext, nfft, calibration_struct, wav_start_datenum, preview_mode, QC_CFG);
     skewness_accum = [skewness_accum skewness_per_window];
     std_accum = [std_accum std_per_window];
     
@@ -181,15 +187,25 @@ for file_num = 1:num_files
         LTAS_gen_PSD_stats(PSD_per_window_cal,frequency_Hz)
     end
 
+    % Calc SPL vs. t
+    % var
+    var_per_window = std_per_window.^2;
+    % cal factor
+    cal_factor_dB = calibration_struct.dBV_re_1uPa;
+    V_pk = calibration_struct.V_pk;
+    cal_factor = (V_pk^2)/10^(cal_factor_dB/10);            % volts / (volts/uPa) = uPa
+    % SPL
+    SPL_dB_per_window = 10*log10(cal_factor*var_per_window);
+
     % Generate plots per wav file
     if ((num_files<10) && (plots_per_wav_file))
-        % Std dev
-        figure; plot(std_per_window,'bo-');
-                title('std-dev per window for wav file');
+        % Var
+        figure; plot(t_secs_per_window, SPL_dB_per_window,'bo-');
+                title('SPL (in dB) per window for wav file');
         figure; histogram(std_per_window);
                 title('Histogram of std-dev per window for wav file');
         % Skewness
-        figure; plot(skewness_per_window); 
+        figure; plot(t_secs_per_window, skewness_per_window); 
                 title('Skewness per window for wav file');
         figure; histogram(skewness_per_window); 
                 title('Histogram of skewness for wav file');
@@ -203,16 +219,16 @@ end
 if plots_per_folder
     % Std dev
     figure; semilogy(std_accum,'bo-');
-            title('std-dev per window');
+            title('std-dev per window (for all wav files)');
             xlabel('Window number (50 pct overlap, 1-sec windows)');
             ylabel('std-dev');
     figure; histogram(std_accum);
-            title('Histogram of std-dev per window');
+            title('Histogram of std-dev per window (for all wav files)');
     % Skewness
     figure; plot(skewness_accum); 
-            title('Skewness per window');
+            title('Skewness per window (for all wav files)');
     figure; histogram(skewness_accum); 
-            title('Histogram of skewness');
+            title('Histogram of skewness (for all wav files)');
     figure; plot(std_accum, skewness_accum,'bo'); 
-            title('Skewness vs. std-dev');
+            title('Skewness vs. std-dev (for all wav files)');
 end

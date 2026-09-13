@@ -23,7 +23,7 @@ end
 
 % Check for abrupt change of the mean, which could indicate missing or skipped data
 y_detrended = detrend(y_segment);
-[TF,S1,S2] = ischange(y_detrended,'Threshold', 64);     
+[TF,S1,S2] = ischange(y_detrended,'Threshold', 512);     
 num_abrupt_changes = sum(TF);
 if num_abrupt_changes > 0
     LTAS_QC_ind = false;
@@ -67,7 +67,8 @@ if QC_CFG.skip_tonals
     % New method, using raven selections
     % Derive end_secs_in
     end_secs_in = start_secs_in + segment_duration_secs;
-    % Build selection_fullpath  
+    % Build selection_fullpath 
+    % Like selections_WHISTLE_SCW1984_20210421_132000.selections
     selection_fullpath = strcat(QC_CFG.selection_folder_tonals,'selections_WHISTLE_',wav_filename_sans_ext,'.selections.txt');
     % Call selections_in_window to get a count of the number of selections
     % that either start (q1) or end (q2) in this window
