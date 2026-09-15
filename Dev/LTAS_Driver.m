@@ -25,7 +25,7 @@ close all;
 
 
 %% User input
-% Specify project e.g. 'JP' (Jennettes Pier) or 'OOI'
+% Specify project e.g. 'JP' (Jennettes Pier) or 'OOI' or 'Polagye_593'
 project = 'JP';
 
 % Specify whether using preview mode (true or false)
@@ -35,14 +35,13 @@ preview_mode = false;
 
 % Switches for plotting
 plots_per_wav_file = true;
-plots_per_folder = true;
+plots_per_folder = false;
 
-% Specify project-specific info: input folders/files, output folders, nfft
+% Specify project-specific info: input folders/files (wav_folder,
+% search_string), output folders (PSD_matfile_folder), QC_CFG
 switch project
     case 'JP'
-        % Specify window size for fft
-        %nfft = 2^19;
-
+        
         % Specify wav folder (with filesep at end)
         external_drive = false;
         if ~external_drive
@@ -76,9 +75,23 @@ switch project
         %QC_CFG.selection_folder_tonals = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Detections\Tonals\Selections\';
         QC_CFG.selection_folder_tonals = 'C:\Users\s44ba\Documents\Projects\JeanettesPier\Detections\Manual\Selections\';
 
+    case 'Polagye_593'
+
+        % Previously, created wav file by: audiowrite('WETS_DAISY_90.wav', WETS_DAISY_90.audio.v, WETS_DAISY_90.audio.fs);
+        
+        % Specify wav folder (with filesep at end)
+        wav_folder = 'C:\Users\s44ba\Documents\Projects\CSI_2026\from_Lindsay\593\WETS_DAISY_SeaRay\';
+
+        % Specify search string for wav file in wav folder
+        search_string = strcat(wav_folder, '*.wav');
+
+        % Specify PSD output folder (with filesep at end)
+        PSD_matfile_folder = 'C:\Users\s44ba\Documents\Projects\CSI_2026\matfiles\';
+
+        QC_CFG.skip_tonals = false;
+        QC_CFG.selection_folder_tonals = '';
+
     case 'OOI'
-        % Specify window size for fft
-        %nfft = 2^16;
         
         % Specify hydrophone e.g. so we can lookup cal per hydrophone
         % For OOI, specify whether shelf or offshore (for ooi)
@@ -117,6 +130,20 @@ switch project
         calibration_struct.freq_dependent = false;
         calibration_struct.dBV_re_1uPa = -171;
         calibration_struct.V_pk = 3.0;
+
+    case 'Polagye_593'
+        cal_info_folder = 'C:\Users\s44ba\Documents\Projects\CSI_2026\from_Lindsay\593\WETS_DAISY_SeaRay\';
+        cal_info_file = strcat(cal_info_folder,'WETS_DAISY_90.mat');
+        cal_info = load(cal_info_file);
+        calibration_struct.freq_dependent = true;
+        calibration_struct.f_cal = cal_info.acoustic_proc.rvs_f;
+        calibration_struct.cal_adj_dB = cal_info.acoustic_proc.rvs;  % should be negative values
+        figure; plot(calibration_struct.f_cal,calibration_struct.cal_adj_dB,'bo-');
+                title('Calibration')
+        % For estimating SPL 
+        calibration_struct.dBV_re_1uPa = -175;
+        calibration_struct.V_pk = 3.0;
+
     case 'OOI'
         % Get frequency dependent cal info from a mat file
         cal_info_folder = 'C:\Users\s44ba\Documents\Projects\from_JPA_moran\ooi\cal_info\';
@@ -128,6 +155,10 @@ switch project
         calibration_struct.cal_adj_dB = cal_info.sense_corr;   % in dB already
         figure; plot(calibration_struct.f_cal,calibration_struct.cal_adj_dB);
                 title('Calibration')
+        % For estimating SPL 
+        calibration_struct.dBV_re_1uPa = median(calibration_struct.cal_adj_dB);
+        calibration_struct.V_pk = 1.0;
+
     otherwise
         error('Unknown project');
 end
@@ -158,6 +189,8 @@ for file_num = 1:num_files
     switch project
         case 'JP'
             wav_start_datenum = JP_wav_filename_to_datenum(wav_filename);
+        case 'Polagye_593'
+            wav_start_datenum = []; % Currently not supported
         case 'OOI'
             wav_start_datenum = []; % Currently not supported
         otherwise
@@ -191,9 +224,9 @@ for file_num = 1:num_files
     % var
     var_per_window = std_per_window.^2;
     % cal factor
-    cal_factor_dB = calibration_struct.dBV_re_1uPa;
+    RVS_dB = calibration_struct.dBV_re_1uPa;
     V_pk = calibration_struct.V_pk;
-    cal_factor = (V_pk^2)/10^(cal_factor_dB/10);            % volts / (volts/uPa) = uPa
+    cal_factor = (V_pk^2)/10^(RVS_dB/10);            % volts / (volts/uPa) = uPa
     % SPL
     SPL_dB_per_window = 10*log10(cal_factor*var_per_window);
 

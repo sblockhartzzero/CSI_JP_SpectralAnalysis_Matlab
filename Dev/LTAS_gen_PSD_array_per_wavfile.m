@@ -21,6 +21,7 @@ PSD_per_window_cal:         Array of power spectral density (in linear units i.e
 frequency_Hz:               The frequency values (in Hz) associated with PSD_per_window_cal 
 skewness_per_window:        skewness per window (regardless whether it is a "good" window)
 std_per_window:             std-dev per window (regardless whether it is a "good" window)
+t_secs_per_window:          midpoint of each window (in seconds since beginning of wav file)
 %}
 
 % 05/29/2022
@@ -49,7 +50,6 @@ figure; plot(t, y, 'b-'); %hold on;
         %plot(t(qc_idx), y(qc_idx), 'ro');
         title('Input time series');
 
-
 % Subset (discontinued)
 y_sub = y;
 y_sub_t = y_sub.';
@@ -72,20 +72,20 @@ if ~preview_mode
     %}
     
     % Apply calibration factor in order to convert to uPa
+    V_pk = calibration_struct.V_pk;
     if calibration_struct.freq_dependent
         % Interpolate f_cal to this freq array
-        cal_factor = 10.^(calibration_struct.cal_adj_dB/10);
+        cal_factor = 10.^(-calibration_struct.cal_adj_dB/10);  % greater than 1
         % Vq = interp1(X,V,Xq,METHOD)
         cal_factor_i = interp1(calibration_struct.f_cal, cal_factor, frequency_Hz');
         PSD_per_window_cal = zeros(num_good_windows,num_freqs);
         for window_num = 1:num_good_windows
-            PSD_per_window_cal(window_num,:) = PSD_per_window(window_num,:).*cal_factor_i;
+            PSD_per_window_cal(window_num,:) = (V_pk^2)*PSD_per_window(window_num,:).*cal_factor_i; %linear domain i.e. not log
         end
     else
         % Constant factor
-        cal_factor_dB = calibration_struct.dBV_re_1uPa;
-        V_pk = calibration_struct.V_pk;
-        cal_factor = (V_pk^2)/10^(cal_factor_dB/10);            % volts / (volts/uPa) = uPa
+        RVS_dB = calibration_struct.dBV_re_1uPa;
+        cal_factor = (V_pk^2)/10^(RVS_dB/10);            % volts / (volts/uPa) = uPa
         PSD_per_window_cal = cal_factor*PSD_per_window;
     end
 else
